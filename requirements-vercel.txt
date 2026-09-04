@@ -1,0 +1,13 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+faster-whisper>=1.0
+torch --index-url https://download.pytorch.org/whl/cpu
+websockets>=12
+python-multipart>=0.0.9
+PyJWT>=2.8
+SQLAlchemy>=2.0
+psycopg[binary]>=3.1
+celery>=5.3
+redis>=5.0
+aiosmtplib>=2.0
+email-validator>=2.1

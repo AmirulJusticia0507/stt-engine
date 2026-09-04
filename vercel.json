@@ -1,0 +1,13 @@
+{
+  "buildCommand": "pip install -r requirements-vercel.txt",
+  "outputDirectory": "frontend",
+  "devCommand": "uvicorn app.main:app --reload --port 8000",
+  "installCommand": "pip install -r requirements-vercel.txt",
+  "framework": "other",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}
