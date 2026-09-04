@@ -3,88 +3,189 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>STT Engine — Vue 3 + FastAPI</title>
+  <title>STT Engine — Shell</title>
   <script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f5f7; }
+    .layout { display: flex; min-height: 100vh; }
+    aside { width: 220px; background: #111827; color: #e5e7eb; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+    aside h2 { font-size: 16px; margin: 4px 0 12px; }
+    aside a { color: #e5e7eb; text-decoration: none; padding: 8px 10px; border-radius: 8px; display: block; }
+    aside a.active, aside a:hover { background: #1f2937; }
+    aside .spacer { flex: 1; }
+    aside small { color: #9ca3af; }
+    main { flex: 1; padding: 24px; max-width: 900px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 12px 0; }
     button { padding: 8px 14px; border-radius: 8px; border: 1px solid #333; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
+    input, select { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
     pre { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 8px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
+    .stat b { font-size: 22px; display: block; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; }
   </style>
 </head>
 <body>
-<div id="app">
-  <h1>STT Engine</h1>
-  <p>Backend: <code>{{ apiBase }}</code> · <span v-if="health">health: {{ health }}</span></p>
-
-  <div class="card">
-    <h3>1) Upload file (REST)</h3>
-    <div class="row">
-      <input type="file" @change="onFile" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" />
-      <select v-model="lang"><option value="id">id</option><option value="en">en</option></select>
-      <button @click="upload" :disabled="!file || loading">{{ loading ? 'Proses...' : 'Transcribe' }}</button>
+<div id="app" class="layout">
+  <aside v-if="token">
+    <h2>STT Engine</h2>
+    <a href="#/dashboard" :class="{active: view==='dashboard'}">Dashboard</a>
+    <a href="#/transcribe" :class="{active: view==='transcribe'}">Transcribe</a>
+    <a href="#/history" :class="{active: view==='history'}">Riwayat</a>
+    <a href="#/settings" :class="{active: view==='settings'}">Pengaturan</a>
+    <div class="spacer"></div>
+    <small>{{ user || 'admin' }}</small>
+    <a href="#" @click.prevent="logout">Keluar</a>
+  </aside>
+  <main>
+    <!-- LOGIN -->
+    <div v-if="!token" class="card" style="max-width:420px;margin:60px auto;">
+      <h3>Masuk</h3>
+      <p><small>Default: <code>admin / admin</code> (diganti via backend <code>ADMIN_USER/ADMIN_PASS</code>).</small></p>
+      <div class="row"><input v-model="loginForm.username" placeholder="username" /><input v-model="loginForm.password" type="password" placeholder="password" /></div>
+      <p><button @click="login">Login</button></p>
+      <pre v-if="loginMsg">{{ loginMsg }}</pre>
     </div>
-    <pre v-if="restResult">{{ restResult }}</pre>
-  </div>
 
-  <div class="card">
-    <h3>2) Mic streaming (WebSocket → PCM 16kHz)</h3>
-    <div class="row">
-      <button @click="startMic" :disabled="streaming">Mulai Mic</button>
-      <button @click="stopMic" :disabled="!streaming">Stop</button>
-      <span>{{ wsStatus }}</span>
+    <!-- DASHBOARD -->
+    <div v-if="token && view==='dashboard'">
+      <h2>Dashboard</h2>
+      <p><small>Backend: <code>{{ apiBase }}</code> · health: {{ healthStatus }}</small></p>
+      <div class="grid">
+        <div class="stat"><b>{{ stats.jobs }}</b>Transkripsi</div>
+        <div class="stat"><b>{{ stats.minutes }}</b>Menit audio</div>
+        <div class="stat"><b>{{ stats.ws }}</b>Event WS</div>
+      </div>
+      <div class="card"><b>Aktivitas terakhir</b><pre v-if="activity">{{ activity }}</pre><span v-else><small>Belum ada aktivitas.</small></span></div>
     </div>
-    <pre v-if="streamText">{{ streamText }}</pre>
-  </div>
+
+    <!-- TRANSCRIBE -->
+    <div v-if="token && view==='transcribe'">
+      <h2>Transcribe</h2>
+      <div class="card">
+        <h3>Upload file (REST)</h3>
+        <div class="row">
+          <input type="file" @change="onFile" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" />
+          <select v-model="lang"><option value="id">id</option><option value="en">en</option></select>
+          <button @click="upload" :disabled="!file || loading">{{ loading ? 'Proses...' : 'Transcribe' }}</button>
+        </div>
+        <pre v-if="restResult">{{ restResult }}</pre>
+      </div>
+      <div class="card">
+        <h3>Mic streaming (WS → PCM 16kHz)</h3>
+        <div class="row">
+          <button @click="startMic" :disabled="streaming">Mulai Mic</button>
+          <button @click="stopMic" :disabled="!streaming">Stop</button>
+          <span>{{ wsStatus }}</span>
+        </div>
+        <pre v-if="streamText">{{ streamText }}</pre>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div v-if="token && view==='history'">
+      <h2>Riwayat</h2>
+      <div class="card">
+        <div class="row"><button @click="loadHistory">Muat ulang</button><small v-if="historyNote">{{ historyNote }}</small></div>
+        <table v-if="history.length"><tr><th>Waktu</th><th>Sumber</th><th>Bahasa</th><th>Teks</th></tr>
+        <tr v-for="(h,i) in history" :key="i"><td>{{ h.at }}</td><td>{{ h.source }}</td><td>{{ h.lang }}</td><td>{{ h.text }}</td></tr></table>
+        <p v-else><small>Belum ada riwayat (tersimpan lokal + dari backend bila tersedia).</small></p>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div v-if="token && view==='settings'">
+      <h2>Pengaturan</h2>
+      <div class="card">
+        <div class="row"><label>API Base</label><input v-model="apiBase" style="min-width:280px" /></div>
+        <div class="row"><label>Bahasa default</label><select v-model="lang"><option value="id">id</option><option value="en">en</option></select></div>
+        <p><small>Token tersimpan di localStorage. Backend JWT akan dipakai otomatis via header <code>Authorization: Bearer</code>.</small></p>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
-const { createApp, ref } = Vue;
-
+const { createApp, ref, onMounted } = Vue;
 createApp({
   setup() {
-    const apiBase = ref(location.origin);
-    const lang = ref('id');
-    const file = ref(null);
-    const loading = ref(false);
-    const restResult = ref('');
-    const health = ref('');
-    const streaming = ref(false);
-    const wsStatus = ref('idle');
-    const streamText = ref('');
-
+    const apiBase = ref(localStorage.getItem('apiBase') || location.origin);
+    const token = ref(localStorage.getItem('stt_token') || '');
+    const user = ref(localStorage.getItem('stt_user') || '');
+    const view = ref((location.hash || '#/dashboard').replace('#/', '') || 'dashboard');
+    const loginForm = ref({ username: 'admin', password: 'admin' });
+    const loginMsg = ref('');
+    const lang = ref(localStorage.getItem('stt_lang') || 'id');
+    const file = ref(null), loading = ref(false), restResult = ref('');
+    const healthStatus = ref('-');
+    const streaming = ref(false), wsStatus = ref('idle'), streamText = ref('');
+    const stats = ref({ jobs: 0, minutes: 0, ws: 0 });
+    const activity = ref('');
+    const history = ref(JSON.parse(localStorage.getItem('stt_history') || '[]'));
+    const historyNote = ref('');
     let ws = null, audioCtx = null, source = null, proc = null, micStream = null;
 
-    fetch(apiBase.value + '/health').then(r => r.json()).then(j => health.value = JSON.stringify(j)).catch(() => {});
-
+    window.addEventListener('hashchange', () => { view.value = (location.hash || '#/dashboard').replace('#/', ''); });
+    function authHeaders() { return token.value ? { Authorization: 'Bearer ' + token.value } : {}; }
+    function pushHistory(entry) {
+      history.value.unshift({ at: new Date().toLocaleString(), ...entry });
+      history.value = history.value.slice(0, 50);
+      localStorage.setItem('stt_history', JSON.stringify(history.value));
+      stats.value.jobs = history.value.length;
+      activity.value = JSON.stringify(history.value[0], null, 2);
+    }
+    async function refreshHealth() {
+      try { const r = await fetch(apiBase.value + '/health'); healthStatus.value = JSON.stringify(await r.json()); }
+      catch { healthStatus.value = 'unreachable'; }
+    }
+    async function login() {
+      loginMsg.value = '';
+      try {
+        const r = await fetch(apiBase.value + '/api/v1/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loginForm.value) });
+        if (r.ok) {
+          const j = await r.json();
+          token.value = j.access_token; user.value = loginForm.value.username;
+          localStorage.setItem('stt_token', token.value); localStorage.setItem('stt_user', user.value);
+          location.hash = '#/dashboard'; refreshHealth(); return;
+        }
+        throw new Error('fallback lokal');
+      } catch {
+        if (loginForm.value.username === 'admin' && loginForm.value.password === 'admin') {
+          token.value = 'local-shell-token'; user.value = 'admin';
+          localStorage.setItem('stt_token', token.value); localStorage.setItem('stt_user', user.value);
+          location.hash = '#/dashboard'; refreshHealth();
+        } else loginMsg.value = 'Login gagal (backend belum ada auth / kredensial salah).';
+      }
+    }
+    function logout() { token.value = ''; localStorage.removeItem('stt_token'); try { stopMic(); } catch {} location.hash = '#/dashboard'; }
     function onFile(e) { file.value = e.target.files[0] || null; }
-
     async function upload() {
       if (!file.value) return;
-      loading.value = true;
-      restResult.value = '';
-      const fd = new FormData();
-      fd.append('file', file.value);
+      loading.value = true; restResult.value = '';
+      const fd = new FormData(); fd.append('file', file.value);
       try {
-        const r = await fetch(`${apiBase.value}/api/v1/transcribe?language=${lang.value}`, { method: 'POST', body: fd });
-        restResult.value = JSON.stringify(await r.json(), null, 2);
+        const r = await fetch(`${apiBase.value}/api/v1/transcribe?language=${lang.value}`, { method: 'POST', headers: authHeaders(), body: fd });
+        const j = await r.json(); restResult.value = JSON.stringify(j, null, 2);
+        if (j?.data?.text) pushHistory({ source: 'upload:' + (file.value.name || ''), lang: lang.value, text: j.data.text.slice(0, 200) });
       } catch (e) { restResult.value = 'Error: ' + e.message; }
       finally { loading.value = false; }
     }
-
     async function startMic() {
       streamText.value = '';
-      ws = new WebSocket(apiBase.value.replace('http', 'ws') + `/ws/v1/transcribe-stream?language=${lang.value}`);
+      const sep = apiBase.value.replace('http', 'ws') + `/ws/v1/transcribe-stream?language=${lang.value}` + (token.value ? `&token=${encodeURIComponent(token.value)}` : '');
+      ws = new WebSocket(sep);
       ws.onopen = () => wsStatus.value = 'ws open';
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
-        if (msg.event === 'transcript') streamText.value += (msg.data.text || '') + '\n';
+        stats.value.ws++;
+        if (msg.event === 'transcript' && msg.data?.text) { streamText.value += msg.data.text + '\n'; pushHistory({ source: 'mic-stream', lang: lang.value, text: msg.data.text.slice(0, 200) }); }
       };
       ws.onerror = () => wsStatus.value = 'ws error';
       ws.onclose = () => wsStatus.value = 'ws closed';
-
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       source = audioCtx.createMediaStreamSource(micStream);
@@ -97,10 +198,8 @@ createApp({
         ws.send(pcm.buffer);
       };
       source.connect(proc); proc.connect(audioCtx.destination);
-      streaming.value = true;
-      wsStatus.value = 'mic on';
+      streaming.value = true; wsStatus.value = 'mic on';
     }
-
     function stopMic() {
       streaming.value = false;
       try { proc?.disconnect(); source?.disconnect(); audioCtx?.close(); } catch {}
@@ -108,8 +207,16 @@ createApp({
       try { ws?.close(); } catch {}
       wsStatus.value = 'idle';
     }
-
-    return { apiBase, lang, file, loading, restResult, health, streaming, wsStatus, streamText, onFile, upload, startMic, stopMic };
+    async function loadHistory() {
+      historyNote.value = '';
+      try {
+        const r = await fetch(apiBase.value + '/api/v1/history', { headers: authHeaders() });
+        if (r.ok) { const j = await r.json(); if (Array.isArray(j.data)) { history.value = j.data.concat(history.value).slice(0, 50); historyNote.value = 'dari backend + lokal'; return; } }
+        historyNote.value = 'backend /history belum tersedia, tampil lokal';
+      } catch { historyNote.value = 'backend unreachable, tampil lokal'; }
+    }
+    onMounted(() => { localStorage.setItem('apiBase', apiBase.value); localStorage.setItem('stt_lang', lang.value); refreshHealth(); if (token.value) loadHistory(); });
+    return { apiBase, token, user, view, loginForm, loginMsg, lang, file, loading, restResult, healthStatus, streaming, wsStatus, streamText, stats, activity, history, historyNote, login, logout, onFile, upload, startMic, stopMic, loadHistory };
   }
 }).mount('#app');
 </script>
