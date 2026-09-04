@@ -244,3 +244,18 @@ def list_history(username: str, limit: int = 50) -> list[dict]:
                 "text": r.text,
             })
         return out
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(150), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    action: Mapped[str] = mapped_column(String(100), default="")
+    detail: Mapped[str] = mapped_column(Text, default="")
+
+
+def log_activity(username: str, action: str, detail: str = ""):
+    with _session() as s:
+        s.add(AuditLog(username=username, action=action, detail=detail[:2000]))
+        s.commit()

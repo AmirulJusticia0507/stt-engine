@@ -15,11 +15,11 @@ from pydantic import BaseModel
 from app.auth import (
     consume_reset_token,
     create_reset_token,
-    ensure_admin,
-    export_history,
+    ensure_export_history,
     get_history,
     is_postgres as auth_db_is_postgres,
     list_history,
+    log_activity,
     make_token,
     parse_token,
     save_history,
@@ -152,7 +152,9 @@ def set_model(body: ModelIn, user: str | None = Depends(current_user)):
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
     try:
-        return {"status": "success", "data": stt_service.switch_model(body.model)}
+        result = stt_service.switch_model(body.model)
+        log_activity(user, 'model_switch', f'model:{body.model}')
+        return {"status": "success", "data": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -174,6 +176,7 @@ def export_item(item_id: int, format: str = "txt", user: str | None = Depends(cu
     if item is None:
         raise HTTPException(status_code=404, detail="Riwayat tidak ditemukan")
     body, media, filename = export_history(item, format)
+    log_activity(user, 'export', f'format:{format},item:{item_id}')
     return Response(content=body.encode("utf-8"), media_type=media,
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
@@ -214,6 +217,8 @@ async def transcribe_audio(
 ):
     raw = await file.read()
     out = _transcribe_bytes(file.filename or "audio.wav", raw, language, user)
+    if user:
+        log_activity(user, 'transcribe', f'file:{file.filename or "audio.wav"}')
     if out["status"] == "error":
         code = 503 if "belum terinstall" in out.get("detail", "") else 400
         raise HTTPException(status_code=code, detail=out["detail"])
@@ -232,6 +237,8 @@ async def transcribe_batch(
     for f in files:
         raw = await f.read()
         results.append(_transcribe_bytes(f.filename or "audio.wav", raw, language, user, "batch"))
+        if user:
+            log_activity(user, 'transcribe', f'batch:{f.filename or "audio.wav"}')
     ok = sum(1 for r in results if r["status"] == "success")
     return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results}
 
