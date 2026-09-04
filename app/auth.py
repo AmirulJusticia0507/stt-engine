@@ -59,14 +59,18 @@ def get_engine():
             kwargs["connect_args"] = {"check_same_thread": False}
         _engine = create_engine(url, **kwargs)
         Base.metadata.create_all(_engine)
-        with _engine.begin() as conn:  # migrasi ringan DB lama -> kolom data
+        with _engine.begin() as conn:  # migrasi ringan DB lama -> kolom data & role
             try:
                 if _engine.dialect.name == "sqlite":
                     cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(history)").fetchall()]
                     if "data" not in cols:
                         conn.exec_driver_sql("ALTER TABLE history ADD COLUMN data TEXT DEFAULT '{}'")
+                    user_cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(users)").fetchall()]
+                    if "role" not in user_cols:
+                        conn.exec_driver_sql("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
                 else:
                     conn.exec_driver_sql("ALTER TABLE history ADD COLUMN IF NOT EXISTS data TEXT DEFAULT '{}'")
+                    conn.exec_driver_sql("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'")
             except Exception:
                 pass
     return _engine
@@ -92,6 +96,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(150), primary_key=True)
     salt: Mapped[str] = mapped_column(String(64))
     pwdhash: Mapped[str] = mapped_column(String(128))
+    role: Mapped[str] = mapped_column(String(20), default="user")
 
 
 class History(Base):
@@ -120,9 +125,13 @@ def ensure_admin():
     user = os.getenv("ADMIN_USER", "admin")
     pwd = os.getenv("ADMIN_PASS", "admin")
     with _session() as s:
-        if s.get(User, user) is None:
+        existing = s.get(User, user)
+        if existing is None:
             salt = secrets.token_hex(16)
-            s.add(User(username=user, salt=salt, pwdhash=_hash(pwd, salt)))
+            s.add(User(username=user, salt=salt, pwdhash=_hash(pwd, salt), role="admin"))
+            s.commit()
+        elif existing.role != "admin":
+            existing.role = "admin"
             s.commit()
 
 
@@ -288,3 +297,53 @@ def list_audit_logs(username: str, limit: int = 50) -> list[dict]:
                 "detail": r.detail,
             })
         return out
+
+
+def get_user_role(username: str) -> str | None:
+    with _session() as s:
+        user = s.get(User, username)
+        return user.role if user else None
+
+
+def is_admin_user(username: str) -> bool:
+    return get_user_role(username) == "admin"
+
+
+def list_users() -> list[dict]:
+    with _session() as s:
+        rows = s.execute(select(User).order_by(User.username)).scalars().all()
+        return [{"username": r.username, "role": r.role} for r in rows]
+
+
+def create_user(username: str, password: str, role: str = "user") -> bool:
+    if role not in ("user", "admin"):
+        return False
+    with _session() as s:
+        if s.get(User, username) is not None:
+            return False
+        salt = secrets.token_hex(16)
+        s.add(User(username=username, salt=salt, pwdhash=_hash(password, salt), role=role))
+        s.commit()
+    return True
+
+
+def update_user_role(username: str, role: str) -> bool:
+    if role not in ("user", "admin"):
+        return False
+    with _session() as s:
+        user = s.get(User, username)
+        if user is None:
+            return False
+        user.role = role
+        s.commit()
+    return True
+
+
+def delete_user(username: str) -> bool:
+    with _session() as s:
+        user = s.get(User, username)
+        if user is None:
+            return False
+        s.delete(user)
+        s.commit()
+    return True

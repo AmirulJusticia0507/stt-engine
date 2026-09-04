@@ -22,6 +22,7 @@
       <a href="#" data-view="audit" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="#" data-view="history" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
       <a href="#" data-view="settings" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
+      <a href="#" data-view="users" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
     </nav>
     <div class="flex-1"></div>
     <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
@@ -146,6 +147,30 @@
           <button id="saveSet" class="bg-slate-900 text-white text-sm rounded-lg px-4 py-2">Simpan</button>
         </div>
       </section>
+
+      <!-- USERS (admin only) -->
+      <section id="v-users" class="hidden">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <h2 class="font-semibold">Manajemen User</h2>
+            <div class="flex-1"></div>
+            <button id="userRefreshBtn" class="text-sm border rounded-lg px-3 py-1.5">Muat ulang</button>
+          </div>
+          <div class="mb-4 flex gap-2 flex-wrap">
+            <input id="newUserName" type="text" placeholder="Username baru" class="border rounded-lg px-3 py-2 text-sm w-48" />
+            <input id="newUserPass" type="password" placeholder="Password" class="border rounded-lg px-3 py-2 text-sm w-40" />
+            <select id="newUserRole" class="border rounded-lg px-3 py-2 text-sm">
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+            </select>
+            <button id="createUserBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Tambah User</button>
+          </div>
+          <div class="overflow-auto"><table class="w-full text-sm">
+            <thead><tr class="text-left text-slate-500"><th class="py-2">Username</th><th>Role</th><th>Aksi</th></tr></thead>
+            <tbody id="userBody"></tbody>
+          </table></div>
+        </div>
+      </section>
     </main>
 
     <!-- FOOTER -->
@@ -173,17 +198,18 @@ document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
 // nav
-const titles = { dashboard: 'Dashboard', transcribe: 'Transcribe', model: 'Model & Perangkat', history: 'Riwayat', audit: 'Log Audit', settings: 'Pengaturan' };
+const titles = { dashboard: 'Dashboard', transcribe: 'Transcribe', model: 'Model & Perangkat', history: 'Riwayat', audit: 'Log Audit', settings: 'Pengaturan', users: 'Manajemen User' };
 document.querySelectorAll('.nav').forEach(a => a.onclick = (e) => {
   e.preventDefault();
   document.querySelectorAll('.nav').forEach(x => x.classList.remove('bg-slate-800'));
   a.classList.add('bg-slate-800');
-  ['dashboard','transcribe','model','history','audit','settings'].forEach(v => document.getElementById('v-'+v).classList.add('hidden'));
+  ['dashboard','transcribe','model','history','audit','settings','users'].forEach(v => document.getElementById('v-'+v).classList.add('hidden'));
   document.getElementById('v-'+a.dataset.view).classList.remove('hidden');
   document.getElementById('title').textContent = titles[a.dataset.view];
   if (a.dataset.view === 'model') loadSystem();
   if (a.dataset.view === 'history') loadHistory();
   if (a.dataset.view === 'audit') loadAudit();
+  if (a.dataset.view === 'users') loadUsers();
 });
 document.getElementById('logoutBtn').onclick = async () => { if (await UI.confirm('Keluar dari dashboard?')) Auth.logout(); };
 
@@ -360,6 +386,77 @@ document.getElementById('saveSet').onclick = () => {
   document.getElementById('lang').value = document.getElementById('defLang').value;
   UI.ok('Pengaturan disimpan');
 };
+
+// user management
+async function loadUsers() {
+  const body = document.getElementById('userBody');
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/users', { headers: Auth.headers() });
+    if (!r.ok) throw new Error('Gagal memuat user');
+    const j = await r.json();
+    const rows = j.users || [];
+    body.innerHTML = rows.map(u => `<tr class="border-t"><td class="py-2">${u.username}</td><td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'}">${u.role}</span></td><td class="py-2 whitespace-nowrap">${u.username !== 'admin' ? `<button class="text-xs border rounded px-1.5 py-0.5 mr-1" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button> <button class="text-xs border rounded px-1.5 py-0.5 text-red-600" onclick="deleteUser('${u.username}')">Hapus</button>` : '<span class="text-xs text-slate-400">(admin utama)</span>'}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400" colspan="3">Belum ada user.</td></tr>';
+  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-red-500" colspan="3">Gagal memuat: ' + e.message + '</td></tr>'; }
+}
+document.getElementById('userRefreshBtn').onclick = loadUsers;
+
+document.getElementById('createUserBtn').onclick = async () => {
+  const username = document.getElementById('newUserName').value.trim();
+  const password = document.getElementById('newUserPass').value;
+  const role = document.getElementById('newUserRole').value;
+  if (!username || !password) return UI.err('Username dan password wajib diisi');
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ username, password, role }),
+    });
+    const j = await r.json(); Swal.close();
+    if (!r.ok) throw new Error(j.detail || 'Gagal membuat user');
+    UI.ok('User ' + username + ' dibuat');
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserPass').value = '';
+    loadUsers();
+  } catch (e) { Swal.close(); UI.err(e.message); }
+};
+
+async function changeRole(username, newRole) {
+  if (!await UI.confirm(`Ubah role ${username} menjadi ${newRole}?`)) return;
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/role`, {
+      method: 'PATCH', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ role: newRole }),
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'Gagal mengubah role');
+    UI.ok('Role ' + username + ' diubah ke ' + newRole);
+    loadUsers();
+  } catch (e) { UI.err(e.message); }
+}
+
+async function deleteUser(username) {
+  if (!await UI.confirm(`Hapus user ${username}?`)) return;
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}`, {
+      method: 'DELETE', headers: Auth.headers(),
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'Gagal menghapus user');
+    UI.ok('User ' + username + ' dihapus');
+    loadUsers();
+  } catch (e) { UI.err(e.message); }
+}
+
+// Check admin role to show/hide admin-only menu
+async function checkAdminRole() {
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
+    if (r.ok) {
+      const j = await r.json();
+      const isAdmin = j.username === 'admin' || j.role === 'admin';
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin));
+    }
+  } catch {}
+}
+checkAdminRole();
 </script>
 </body>
 </html>

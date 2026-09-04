@@ -16,15 +16,21 @@ from pydantic import BaseModel
 from app.auth import (
     consume_reset_token,
     create_reset_token,
+    create_user,
+    delete_user,
     ensure_admin,
     export_history,
     get_history,
+    get_user_role,
+    is_admin_user,
     is_postgres as auth_db_is_postgres,
     list_audit_logs,
     list_history,
+    list_users,
     log_activity,
     make_token,
     parse_token,
+    update_user_role,
     APIKey,
     generate_api_key,
     _session,
@@ -48,6 +54,14 @@ def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer), x
         if row and row.is_active:
             return row.username
     return None
+
+
+def admin_user(user: str | None = Depends(current_user)) -> str:
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    if not is_admin_user(user):
+        raise HTTPException(status_code=403, detail="Hanya admin")
+    return user
 
 
 class LoginIn(BaseModel):
@@ -149,6 +163,46 @@ def revoke_api_key(key: str, user: str | None = Depends(current_user)):
         if row:
             row.is_active = False
             s.commit()
+    return {"status": "success"}
+
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    role: str = "user"
+
+
+class UserRoleIn(BaseModel):
+    role: str
+
+
+@app.get("/api/v1/users")
+def list_users_endpoint(user: str = Depends(admin_user)):
+    return {"status": "success", "users": list_users()}
+
+
+@app.post("/api/v1/users")
+def create_user_endpoint(body: UserIn, user: str = Depends(admin_user)):
+    if not create_user(body.username, body.password, body.role):
+        raise HTTPException(status_code=400, detail="Username sudah ada atau role tidak valid")
+    return {"status": "success", "username": body.username, "role": body.role}
+
+
+@app.patch("/api/v1/users/{username}/role")
+def update_user_role_endpoint(username: str, body: UserRoleIn, user: str = Depends(admin_user)):
+    if username == "admin" and body.role != "admin":
+        raise HTTPException(status_code=400, detail="Tidak bisa mengubah role admin")
+    if not update_user_role(username, body.role):
+        raise HTTPException(status_code=400, detail="User tidak ditemukan atau role tidak valid")
+    return {"status": "success", "username": username, "role": body.role}
+
+
+@app.delete("/api/v1/users/{username}")
+def delete_user_endpoint(username: str, user: str = Depends(admin_user)):
+    if username == "admin":
+        raise HTTPException(status_code=400, detail="Tidak bisa menghapus admin")
+    if not delete_user(username):
+        raise HTTPException(status_code=400, detail="User tidak ditemukan")
     return {"status": "success"}
 
 
