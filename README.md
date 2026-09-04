@@ -159,6 +159,8 @@ uvicorn app.main:app --port 8000
 - [x] Docker Compose FastAPI + Postgres + panduan GPU
 - [x] Halaman Model & Perangkat (`GET /api/v1/system`, ganti model runtime)
 - [x] Batch transcribe (hingga 20 file sekaligus)
+- [x] Audit log (backend + UI di dashboard)
+- [x] API key generate/list/revoke + header `X-API-Key` auth
 - [x] README 5 bab
 
 ### ⬜ Belum dikerjakan / belum dibuat
@@ -166,7 +168,4 @@ uvicorn app.main:app --port 8000
 - [ ] Manajemen user & roles (admin vs user biasa)
 - [ ] Antrean file besar (Celery + Redis)
 - [ ] Reset password via email (sekarang token dikembalikan langsung)
-- [ ] Batch upload banyak file sekaligus
-- [ ] API key untuk pemakaian aplikasi lain
-- [ ] Log audit aktivitas user
 - [ ] Tes otomatis (pytest) + CI
