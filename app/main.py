@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -16,6 +16,8 @@ from app.auth import (
     consume_reset_token,
     create_reset_token,
     ensure_admin,
+    export_history,
+    get_history,
     list_history,
     make_token,
     parse_token,
@@ -112,6 +114,20 @@ def history(user: str | None = Depends(current_user)):
     return {"status": "success", "data": list_history(user)}
 
 
+@app.get("/api/v1/history/{item_id}/export")
+def export_item(item_id: int, format: str = "txt", user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    if format.lower() not in ("txt", "srt", "vtt"):
+        raise HTTPException(status_code=400, detail="Format harus txt|srt|vtt")
+    item = get_history(item_id, user)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Riwayat tidak ditemukan")
+    body, media, filename = export_history(item, format)
+    return Response(content=body.encode("utf-8"), media_type=media,
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
 @app.post("/api/v1/transcribe")
 async def transcribe_audio(
     file: UploadFile = File(...),
@@ -129,7 +145,7 @@ async def transcribe_audio(
         result = stt_service.transcribe_file(tmp, language=language)
         if user and result.get("text"):
             try:
-                save_history(user, f"upload:{file.filename}", language, result["text"])
+                save_history(user, f"upload:{file.filename}", language, result["text"], result)
             except Exception:
                 pass
         return {"status": "success", "data": result}
@@ -170,7 +186,7 @@ async def websocket_transcribe(websocket: WebSocket, language: str = "id", token
                     result = stt_service.transcribe_file(norm, language=language)
                     if ws_user and result.get("text"):
                         try:
-                            save_history(ws_user, "mic-stream", language, result["text"])
+                            save_history(ws_user, "mic-stream", language, result["text"], result)
                         except Exception:
                             pass
                     await websocket.send_json({"event": "transcript", "data": result})

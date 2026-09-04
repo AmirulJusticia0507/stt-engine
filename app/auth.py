@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import os
 import secrets
 import time
@@ -58,6 +59,16 @@ def get_engine():
             kwargs["connect_args"] = {"check_same_thread": False}
         _engine = create_engine(url, **kwargs)
         Base.metadata.create_all(_engine)
+        with _engine.begin() as conn:  # migrasi ringan DB lama -> kolom data
+            try:
+                if _engine.dialect.name == "sqlite":
+                    cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(history)").fetchall()]
+                    if "data" not in cols:
+                        conn.exec_driver_sql("ALTER TABLE history ADD COLUMN data TEXT DEFAULT '{}'")
+                else:
+                    conn.exec_driver_sql("ALTER TABLE history ADD COLUMN IF NOT EXISTS data TEXT DEFAULT '{}'")
+            except Exception:
+                pass
     return _engine
 
 
@@ -91,6 +102,7 @@ class History(Base):
     source: Mapped[str] = mapped_column(String(255), default="")
     lang: Mapped[str] = mapped_column(String(16), default="id")
     text: Mapped[str] = mapped_column(Text, default="")
+    data: Mapped[str] = mapped_column(Text, default="{}")  # JSON penuh (segments) untuk ekspor SRT/VTT
 
 
 class ResetToken(Base):
@@ -166,10 +178,54 @@ def consume_reset_token(token: str, new_password: str) -> str | None:
     return username
 
 
-def save_history(username: str, source: str, lang: str, text: str):
+def save_history(username: str, source: str, lang: str, text: str, data: dict | None = None):
     with _session() as s:
-        s.add(History(username=username, source=source, lang=lang, text=text[:2000]))
+        s.add(History(
+            username=username, source=source, lang=lang, text=text[:2000],
+            data=json.dumps(data or {}, default=str)[:200000],
+        ))
         s.commit()
+
+
+def get_history(item_id: int, username: str) -> dict | None:
+    with _session() as s:
+        r = s.get(History, item_id)
+        if r is None or r.username != username:
+            return None
+        try:
+            data = json.loads(r.data or "{}")
+        except Exception:
+            data = {}
+        return {"id": r.id, "source": r.source, "lang": r.lang, "text": r.text, "data": data}
+
+
+def _ts(sec: float, sep: str) -> str:
+    ms = int(round(float(sec) * 1000))
+    h, ms = divmod(ms, 3600000)
+    m, ms = divmod(ms, 60000)
+    s, ms = divmod(ms, 1000)
+    return f"{h:02}:{m:02}:{s:02}{sep}{ms:03}"
+
+
+def export_history(item: dict, fmt: str) -> tuple[str, str, str]:
+    """Return (content, media_type, filename). fmt: txt|srt|vtt."""
+    fmt = (fmt or "txt").lower()
+    text = item.get("text", "")
+    segs = (item.get("data") or {}).get("segments") or []
+    base = f"transkrip-{item.get('id', 0)}"
+    if fmt == "srt":
+        lines = []
+        for i, sg in enumerate(segs, 1):
+            lines.append(f"{i}\n{_ts(sg.get('start', 0), ',')} --> {_ts(sg.get('end', 0), ',')}\n{sg.get('text', '').strip()}\n")
+        body = "\n".join(lines) if lines else text
+        return body + "\n", "application/x-subrip", f"{base}.srt"
+    if fmt == "vtt":
+        lines = ["WEBVTT\n"]
+        for sg in segs:
+            lines.append(f"{_ts(sg.get('start', 0), '.')} --> {_ts(sg.get('end', 0), '.')}\n{sg.get('text', '').strip()}\n")
+        body = "\n".join(lines) if len(lines) > 1 else "WEBVTT\n\n" + text + "\n"
+        return body, "text/vtt", f"{base}.vtt"
+    return text + "\n", "text/plain; charset=utf-8", f"{base}.txt"
 
 
 def list_history(username: str, limit: int = 50) -> list[dict]:
@@ -181,6 +237,7 @@ def list_history(username: str, limit: int = 50) -> list[dict]:
         for r in rows:
             at = r.at
             out.append({
+                "id": r.id,
                 "at": at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(at, "strftime") else str(at),
                 "source": r.source,
                 "lang": r.lang,
