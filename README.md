@@ -163,9 +163,9 @@ uvicorn app.main:app --port 8000
 - [x] API key generate/list/revoke + header `X-API-Key` auth
 - [x] Manajemen user & roles (admin vs user biasa)
 - [x] Antrean file besar (Celery + Redis) - async transcribe + job status
+- [x] Reset password via email (SMTP)
 - [x] README 5 bab
 
 ### ⬜ Belum dikerjakan / belum dibuat
 
-- [ ] Reset password via email (sekarang token dikembalikan langsung)
 - [ ] Tes otomatis (pytest) + CI
