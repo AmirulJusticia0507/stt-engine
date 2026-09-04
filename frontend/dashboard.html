@@ -58,19 +58,19 @@
       <section id="v-transcribe" class="hidden">
         <div class="bg-white rounded-2xl shadow p-5">
           <h2 class="font-semibold mb-3">Upload file (REST)</h2>
-          <div class="flex flex-wrap gap-2 items-center">
-            <input id="file" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" class="text-sm" />
-            <select id="lang" class="border rounded-lg px-2 py-1.5 text-sm"><option value="id">id</option><option value="en">en</option></select>
-            <button id="upBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Transcribe</button>
-            <button id="batchBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2 hidden">Batch (max 20)</button>
+          <div class="flex flex-col sm:flex-row gap-2 items-center">
+            <input id="file" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" class="w-full sm:w-auto text-sm" />
+            <select id="lang" class="w-full sm:w-auto border rounded-lg px-2 py-1.5 text-sm"><option value="id">id</option><option value="en">en</option></select>
+            <button id="upBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Transcribe</button>
+            <button id="batchBtn" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2 hidden">Batch (max 20)</button>
           </div>
           <pre id="restOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
         </div>
         <div class="bg-white rounded-2xl shadow p-5 mt-4">
           <h2 class="font-semibold mb-3">Mic streaming (WS → PCM 16kHz)</h2>
-          <div class="flex gap-2 items-center">
-            <button id="micOn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2">Mulai Mic</button>
-            <button id="micOff" class="border text-sm rounded-lg px-4 py-2" disabled>Stop</button>
+          <div class="flex flex-col sm:flex-row gap-2 items-center">
+            <button id="micOn" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2">Mulai Mic</button>
+            <button id="micOff" class="w-full sm:w-auto border text-sm rounded-lg px-4 py-2" disabled>Stop</button>
             <span id="wsStat" class="text-xs text-slate-500">idle</span>
           </div>
           <pre id="wsOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
@@ -91,8 +91,8 @@
             <div class="bg-slate-50 rounded-xl p-4"><div id="mVram" class="text-lg font-bold">-</div><div class="text-xs text-slate-500">GPU / VRAM</div></div>
           </div>
           <pre id="sysOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto">Memuat…</pre>
-          <div class="flex flex-wrap gap-2 items-center mt-3">
-            <select id="modelSel" class="border rounded-lg px-2 py-1.5 text-sm">
+          <div class="flex flex-col sm:flex-row gap-2 items-center mt-3">
+            <select id="modelSel" class="w-full sm:w-auto border rounded-lg px-2 py-1.5 text-sm">
               <option value="tiny">tiny (CPU)</option>
               <option value="base">base</option>
               <option value="small">small</option>
@@ -100,7 +100,7 @@
               <option value="large-v3">large-v3</option>
               <option value="large-v3-turbo">large-v3-turbo (GPU)</option>
             </select>
-            <button id="modelBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Ganti Model</button>
+            <button id="modelBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Ganti Model</button>
             <span class="text-xs text-slate-400">Model baru di-load saat transcribe berikutnya.</span>
           </div>
         </div>
@@ -142,9 +142,9 @@
           <h2 class="font-semibold">Pengaturan</h2>
           <div><label class="text-sm">API Base</label><input id="apiBase" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" /></div>
           <div><label class="text-sm">Bahasa default</label>
-            <select id="defLang" class="mt-1 border rounded-lg px-3 py-2 text-sm"><option value="id">id</option><option value="en">en</option></select>
+            <select id="defLang" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm"><option value="id">id</option><option value="en">en</option></select>
           </div>
-          <button id="saveSet" class="bg-slate-900 text-white text-sm rounded-lg px-4 py-2">Simpan</button>
+          <button id="saveSet" class="w-full bg-slate-900 text-white text-sm rounded-lg px-4 py-2">Simpan</button>
         </div>
       </section>
 
@@ -156,14 +156,14 @@
             <div class="flex-1"></div>
             <button id="userRefreshBtn" class="text-sm border rounded-lg px-3 py-1.5">Muat ulang</button>
           </div>
-          <div class="mb-4 flex gap-2 flex-wrap">
-            <input id="newUserName" type="text" placeholder="Username baru" class="border rounded-lg px-3 py-2 text-sm w-48" />
-            <input id="newUserPass" type="password" placeholder="Password" class="border rounded-lg px-3 py-2 text-sm w-40" />
-            <select id="newUserRole" class="border rounded-lg px-3 py-2 text-sm">
+          <div class="mb-4 flex flex-col sm:flex-row gap-2">
+            <input id="newUserName" type="text" placeholder="Username baru" class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm" />
+            <input id="newUserPass" type="password" placeholder="Password" class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm" />
+            <select id="newUserRole" class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm">
               <option value="user">user</option>
               <option value="admin">admin</option>
             </select>
-            <button id="createUserBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Tambah User</button>
+            <button id="createUserBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Tambah User</button>
           </div>
           <div class="overflow-auto"><table class="w-full text-sm">
             <thead><tr class="text-left text-slate-500"><th class="py-2">Username</th><th>Role</th><th>Aksi</th></tr></thead>
