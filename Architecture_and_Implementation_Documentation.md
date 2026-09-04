@@ -1,22 +1,31 @@
-Dokumentasi ini mencakup skenario **File Audio Uploading** maupun  **Real-time WebSocket Streaming** .
-
-
 # Voice-to-Text (STT) Engine Documentation
 
 Dokumentasi teknis untuk sistem Speech-to-Text berbasis **Faster-Whisper** dan **FastAPI**.
+Mencakup skenario **File Audio Uploading** maupun **Real-time WebSocket Streaming**.
+
+## Daftar Isi
+
+- [1. Prerequisites \& Environment Setup](#1-prerequisites--environment-setup)
+- [2. Project Directory Structure](#2-project-directory-structure)
+- [3. Core Implementation Code](#3-core-implementation-code)
+- [4. Docker Deployment Setup](#4-docker-deployment-setup)
+- [5. Client Integration Examples](#5-client-integration-examples)
+- [6. Production Notes](#6-production-notes)
 
 ---
 
 ## 1. Prerequisites & Environment Setup
 
-### System Requirements
+### 1.1 System Requirements
 
-* **OS:** Ubuntu 22.04 LTS / Debian 12
-* **GPU:** NVIDIA GPU (Minimum 8GB VRAM untuk FP16 Large-v3-Turbo)
-* **CUDA Version:** 12.x
-* **Python:** 3.10+
+- **OS:** Ubuntu 22.04 LTS / Debian 12
+- **GPU:** NVIDIA GPU (Minimum 8GB VRAM untuk FP16 Large-v3-Turbo)
+- **CUDA Version:** 12.x
+- **Python:** 3.10+
 
-### Dependencies Installation
+> Catatan: repo ini sedang dibuka dari Windows (Laragon). Untuk dev lokal di Windows, gunakan path temp Windows atau WSL2 + Docker. Path `/tmp/stt_audio` di contoh kode hanya valid di Linux/container.
+
+### 1.2 Dependencies Installation
 
 ```bash
 # Update system & install ffmpeg (WAJIB untuk pemrosesan audio)
@@ -30,9 +39,11 @@ source venv/bin/activate
 pip install fastapi uvicorn[standard] faster-whisper torch websockets python-multipart
 ```
 
+---
 
-2. Project Directory Structure
+## 2. Project Directory Structure
 
+```text
 stt-engine/
 ├── app/
 │   ├── __init__.py
@@ -43,14 +54,15 @@ stt-engine/
 ├── Dockerfile
 ├── requirements.txt
 └── README.md
+```
 
-3. 
+---
 
-## Core Implementation Code
+## 3. Core Implementation Code
 
-### `app/stt_engine.py` (Inference Manager)
+### 3.1 `app/stt_engine.py` (Inference Manager)
 
-```Python
+```python
 import torch
 from faster_whisper import WhisperModel
 import logging
@@ -63,13 +75,13 @@ class SpeechToTextEngine:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
             self.device = device
-          
+
         # Jika running di CPU, gunakan int8/float32
         if self.device == "cpu":
             compute_type = "int8"
-          
+
         logging.info(f"Loading Whisper model '{model_size}' on {self.device} with {compute_type}...")
-      
+
         # Inisialisasi model CTranslate2
         self.model = WhisperModel(
             model_size_or_path=model_size,
@@ -89,7 +101,7 @@ class SpeechToTextEngine:
             vad_filter=True, # Silero VAD otomatis aktif untuk memotong silence
             vad_parameters=dict(min_silence_duration_ms=500)
         )
-      
+
         results = []
         for segment in segments:
             results.append({
@@ -97,7 +109,7 @@ class SpeechToTextEngine:
                 "end": round(segment.end, 2),
                 "text": segment.text.strip()
             })
-          
+
         return {
             "detected_language": info.language,
             "language_probability": round(info.language_probability, 2),
@@ -115,9 +127,9 @@ class SpeechToTextEngine:
 stt_service = SpeechToTextEngine()
 ```
 
-`app/main.py` (FastAPI Server)
+### 3.2 `app/main.py` (FastAPI Server)
 
-```Python
+```python
 from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, HTTPException
 from app.stt_engine import stt_service
 import shutil
@@ -172,10 +184,10 @@ async def websocket_transcribe(websocket: WebSocket, language: str = "id"):
         while True:
             # menerima raw byte chunk audio dari client
             data = await websocket.receive_bytes()
-          
+
             # Catatan: Di produksi, kumpulkan chunk hingga durasi VAD tercapai (~1-2 detik)
             # lalu jalankan stt_service.model.transcribe()
-          
+
             # Response placeholder / feedback
             await websocket.send_json({
                 "event": "chunk_received",
@@ -185,10 +197,13 @@ async def websocket_transcribe(websocket: WebSocket, language: str = "id"):
         print("Client disconnected from WebSocket")
 ```
 
+---
 
-4. Docker Deployment Setup
+## 4. Docker Deployment Setup
 
-```Dockerfile
+### 4.1 Dockerfile
+
+```dockerfile
 FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
 ENV PYTHONUNBUFFERED=1 \
@@ -212,29 +227,48 @@ EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Running with GPU Support
+### 4.2 Build & Run with GPU Support
 
+```bash
 # Build image
-
 docker build -t stt-engine:v1 .
 
 # Run container dengan passthrough GPU NVIDIA
-
 docker run --gpus all -d -p 8000:8000 --name stt-service stt-engine:v1
+```
 
-5. Client Integration Examples
-   cURL (HTTP API)
+---
 
-```Shell
+## 5. Client Integration Examples
+
+### 5.1 cURL (HTTP API)
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/transcribe?language=id" \
   -H "accept: application/json" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@/path/to/sample_audio.mp3"
 ```
 
+### 5.2 WebSocket (Streaming)
+
+> TODO: contoh di bawah adalah template minimal agar sejajar dengan blueprint. Implementasi server saat ini masih `chunk_received` placeholder (lihat `app/main.py`).
+
+```javascript
+const ws = new WebSocket("ws://localhost:8000/ws/v1/transcribe-stream?language=id");
+ws.binaryType = "arraybuffer";
+
+ws.onopen = () => {
+  // kirim PCM 16kHz mono chunk, misal 320ms / chunk
+};
+
+ws.onmessage = (event) => {
+  console.log("server:", event.data);
+};
+```
 
 ---
 
-Jika sistem ini akan dipakai di skala produksi ber-traffic tinggi, penggabungan **Celery + Redis** untuk *background task management* dan penerapan **Audio Normalization** (`ffmpeg` / `pydub`) pada layer *ingestion* sangat direkomendasikan agar kualitas sinyal audio lebih stabil sebelum diproses oleh model.
+## 6. Production Notes
 
-<FollowUp label="Mau ditambahkan skema Celery + Redis untuk antrean file berukuran besar?" query="Tolong tambahkan konfigurasi Celery dan Redis ke dalam dokumentasi untuk menangani antrean file audio yang panjang/besar."/>
+Jika sistem ini akan dipakai di skala produksi ber-traffic tinggi, penggabungan **Celery + Redis** untuk *background task management* dan penerapan **Audio Normalization** (`ffmpeg` / `pydub`) pada layer *ingestion* sangat direkomendasikan agar kualitas sinyal audio lebih stabil sebelum diproses oleh model.
