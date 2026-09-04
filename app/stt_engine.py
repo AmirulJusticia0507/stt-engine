@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
 logger = logging.getLogger("stt-engine")
@@ -10,12 +11,13 @@ logger = logging.getLogger("stt-engine")
 class SpeechToTextEngine:
     def __init__(
         self,
-        model_size: str = "large-v3-turbo",
+        model_size: str | None = None,
         device: str | None = None,
-        compute_type: str = "float16",
+        compute_type: str | None = None,
     ):
-        self.model_size = model_size
-        self.compute_type_requested = compute_type
+        # STT_MODEL=tiny di CPU kentang, large-v3-turbo di GPU (lihat blueprint)
+        self.model_size = model_size or os.getenv("STT_MODEL", "large-v3-turbo")
+        compute_type = compute_type or os.getenv("STT_COMPUTE", "float16")
         self.device = device or self._detect_device()
         if self.device == "cpu" and compute_type in ("float16", "float32"):
             compute_type = "int8"
