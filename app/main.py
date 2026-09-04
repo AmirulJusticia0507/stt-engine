@@ -20,6 +20,7 @@ from app.auth import (
     export_history,
     get_history,
     is_postgres as auth_db_is_postgres,
+    list_audit_logs,
     list_history,
     log_activity,
     make_token,
@@ -207,6 +208,13 @@ def history(user: str | None = Depends(current_user)):
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
     return {"status": "success", "data": list_history(user)}
+
+
+@app.get("/api/v1/audit/log")
+def audit_log(user: str | None = Depends(current_user), limit: int = 50):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"status": "success", "data": list_audit_logs(user, limit)}
 
 
 @app.get("/api/v1/history/{item_id}/export")

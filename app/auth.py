@@ -271,3 +271,20 @@ class APIKey(Base):
 
 def generate_api_key() -> str:
     return secrets.token_urlsafe(32)
+
+
+def list_audit_logs(username: str, limit: int = 50) -> list[dict]:
+    with _session() as s:
+        rows = s.execute(
+            select(AuditLog).where(AuditLog.username == username).order_by(desc(AuditLog.id)).limit(limit)
+        ).scalars().all()
+        out = []
+        for r in rows:
+            at = r.at
+            out.append({
+                "id": r.id,
+                "at": at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(at, "strftime") else str(at),
+                "action": r.action,
+                "detail": r.detail,
+            })
+        return out

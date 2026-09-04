@@ -19,6 +19,7 @@
       <a href="#" data-view="dashboard" class="nav block px-3 py-2 rounded-lg bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
       <a href="#" data-view="transcribe" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
       <a href="#" data-view="model" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
+      <a href="#" data-view="audit" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="#" data-view="history" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
       <a href="#" data-view="settings" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
     </nav>
@@ -119,6 +120,21 @@
         </div>
       </section>
 
+      <!-- AUDIT LOG -->
+      <section id="v-audit" class="hidden">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <h2 class="font-semibold">Log Audit</h2>
+            <div class="flex-1"></div>
+            <button id="auditBtn" class="text-sm border rounded-lg px-3 py-1.5">Muat ulang</button>
+          </div>
+          <div class="overflow-auto"><table class="w-full text-sm">
+            <thead><tr class="text-left text-slate-500"><th class="py-2">Waktu</th><th>Aksi</th><th>Detail</th></tr></thead>
+            <tbody id="auditBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
       <!-- SETTINGS -->
       <section id="v-settings" class="hidden">
         <div class="bg-white rounded-2xl shadow p-5 space-y-3">
@@ -157,16 +173,17 @@ document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
 // nav
-const titles = { dashboard: 'Dashboard', transcribe: 'Transcribe', model: 'Model & Perangkat', history: 'Riwayat', settings: 'Pengaturan' };
+const titles = { dashboard: 'Dashboard', transcribe: 'Transcribe', model: 'Model & Perangkat', history: 'Riwayat', audit: 'Log Audit', settings: 'Pengaturan' };
 document.querySelectorAll('.nav').forEach(a => a.onclick = (e) => {
   e.preventDefault();
   document.querySelectorAll('.nav').forEach(x => x.classList.remove('bg-slate-800'));
   a.classList.add('bg-slate-800');
-  ['dashboard','transcribe','model','history','settings'].forEach(v => document.getElementById('v-'+v).classList.add('hidden'));
+  ['dashboard','transcribe','model','history','audit','settings'].forEach(v => document.getElementById('v-'+v).classList.add('hidden'));
   document.getElementById('v-'+a.dataset.view).classList.remove('hidden');
   document.getElementById('title').textContent = titles[a.dataset.view];
   if (a.dataset.view === 'model') loadSystem();
   if (a.dataset.view === 'history') loadHistory();
+  if (a.dataset.view === 'audit') loadAudit();
 });
 document.getElementById('logoutBtn').onclick = async () => { if (await UI.confirm('Keluar dari dashboard?')) Auth.logout(); };
 
@@ -300,6 +317,19 @@ async function dlHist(id, fmt) {
     URL.revokeObjectURL(a.href);
   } catch (e) { UI.err(e.message); }
 }
+
+// audit log
+async function loadAudit() {
+  const body = document.getElementById('auditBody');
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/audit/log?limit=50', { headers: Auth.headers() });
+    const j = await r.json();
+    const rows = j.data || [];
+    body.innerHTML = rows.map(l => `<tr class="border-t"><td class="py-2">${l.at || ''}</td><td>${l.action || ''}</td><td>${l.detail || ''}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400">Belum ada log.</td></tr>';
+  } catch {}
+}
+document.getElementById('auditBtn').onclick = loadAudit;
+
 async function batchUpload() {
   const files = document.getElementById('file').files;
   if (!files.length) return UI.err('Pilih file dulu');
