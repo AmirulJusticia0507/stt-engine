@@ -164,6 +164,7 @@ uvicorn app.main:app --port 8000
 - [x] Manajemen user & roles (admin vs user biasa)
 - [x] Antrean file besar (Celery + Redis) - async transcribe + job status
 - [x] Reset password via email (SMTP)
+- [x] Sistem kredit user (topup, deduct, set, deduct saat transcribe)
 - [x] Tes otomatis (pytest) + CI (GitHub Actions)
 - [x] README 5 bab
 
