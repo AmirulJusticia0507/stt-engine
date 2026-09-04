@@ -158,6 +158,7 @@ uvicorn app.main:app --port 8000
 - [x] Ekspor transkrip TXT / SRT / VTT per riwayat
 - [x] Docker Compose FastAPI + Postgres + panduan GPU
 - [x] Halaman Model & Perangkat (`GET /api/v1/system`, ganti model runtime)
+- [x] Batch transcribe (hingga 20 file sekaligus)
 - [x] README 5 bab
 
 ### ⬜ Belum dikerjakan / belum dibuat

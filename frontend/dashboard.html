@@ -60,6 +60,7 @@
             <input id="file" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" class="text-sm" />
             <select id="lang" class="border rounded-lg px-2 py-1.5 text-sm"><option value="id">id</option><option value="en">en</option></select>
             <button id="upBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Transcribe</button>
+            <button id="batchBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2 hidden">Batch (max 20)</button>
           </div>
           <pre id="restOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
         </div>
@@ -285,6 +286,7 @@ async function loadHistory() {
   body.innerHTML = rows.map(h => `<tr class="border-t"><td class="py-2">${h.at || ''}</td><td>${h.source || ''}</td><td>${h.lang || ''}</td><td>${(h.text || '').slice(0, 120)}</td><td class="whitespace-nowrap">${h.id ? `<button class="text-xs border rounded px-1.5 py-0.5" onclick="dlHist(${h.id},'txt')">TXT</button> <button class="text-xs border rounded px-1.5 py-0.5" onclick="dlHist(${h.id},'srt')">SRT</button> <button class="text-xs border rounded px-1.5 py-0.5" onclick="dlHist(${h.id},'vtt')">VTT</button>` : '<span class="text-xs text-slate-300">lokal</span>'}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400">Belum ada riwayat.</td></tr>';
 }
 document.getElementById('histBtn').onclick = loadHistory;
+document.getElementById('batchBtn').onclick = batchUpload;
 
 async function dlHist(id, fmt) {
   try {
@@ -297,6 +299,26 @@ async function dlHist(id, fmt) {
     a.click();
     URL.revokeObjectURL(a.href);
   } catch (e) { UI.err(e.message); }
+}
+async function batchUpload() {
+  const files = document.getElementById('file').files;
+  if (!files.length) return UI.err('Pilih file dulu');
+  if (files.length > 20) return UI.err('Maksimal 20 file per batch');
+  const lang = document.getElementById('lang').value;
+  const fd = new FormData();
+  Array.from(files).forEach(f => fd.append('files', f));
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/transcribe-batch?language=${lang}`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'multipart/form-data' }), body: fd,
+    });
+    const j = await r.json(); Swal.close();
+    if (!r.ok) throw new Error(j.detail || 'Batch gagal');
+    UI.ok('Batch selesai: ' + j.summary.ok + '/' + j.summary.total + ' berhasil');
+    loadHistory();
+    // refresh statistik ringkas
+    const sr = document.getElementById('stJobs'); sr.textContent = (Number(sr.textContent || 0) + j.summary.ok);
+  } catch (e) { Swal.close(); UI.err(e.message); }
 }
 
 // settings
