@@ -175,6 +175,21 @@ def create_reset_token(username: str) -> str | None:
         return token
 
 
+async def create_and_send_reset_token(username: str, email: str) -> bool:
+    """
+    Create reset token and send email.
+    Returns True if email sent (or SMTP not configured), False on error.
+    """
+    token = create_reset_token(username)
+    if not token:
+        return False
+    try:
+        from app.email_utils import send_reset_email
+        return await send_reset_email(email, username, token)
+    except Exception:
+        return False
+
+
 def consume_reset_token(token: str, new_password: str) -> str | None:
     with _session() as s:
         row = s.get(ResetToken, token)

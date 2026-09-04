@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from app.auth import (
     consume_reset_token,
+    create_and_send_reset_token,
     create_reset_token,
     create_user,
     delete_user,
@@ -75,6 +76,7 @@ class LoginIn(BaseModel):
 
 class ForgotIn(BaseModel):
     username: str
+    email: str | None = None
 
 
 class ResetIn(BaseModel):
@@ -115,10 +117,11 @@ def login(body: LoginIn):
 
 
 @app.post("/api/v1/auth/forgot")
-def forgot(body: ForgotIn):
-    # Selalu return success agar tidak bocor enumerasi user; token dikembalikan di dev.
-    token = create_reset_token(body.username)
-    return {"status": "success", "reset_token": token}
+async def forgot(body: ForgotIn):
+    # Selalu return success agar tidak bocor enumerasi user; token dikirim via email.
+    email = body.email or body.username
+    sent = await create_and_send_reset_token(body.username, email)
+    return {"status": "success", "message": "Jika email terdaftar, link reset telah dikirim"}
 
 
 @app.post("/api/v1/auth/reset")
