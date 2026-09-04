@@ -4,25 +4,38 @@ from __future__ import annotations
 import logging
 import wave
 from pathlib import Path
-from sqlalchemy import select
 
-from fastapi import Depends, FastAPI, Header, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Header,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from sqlalchemy import select
 
 from app.auth import (
+    APIKey,
+    _session,
+    add_credits,
     consume_reset_token,
     create_and_send_reset_token,
-    create_reset_token,
     create_user,
+    deduct_credits,
     delete_user,
     ensure_admin,
     export_history,
+    generate_api_key,
     get_history,
-    get_user_role,
+    get_user_credits,
     is_admin_user,
     is_postgres as auth_db_is_postgres,
     list_audit_logs,
@@ -31,12 +44,16 @@ from app.auth import (
     log_activity,
     make_token,
     parse_token,
-    update_user_role,
-    APIKey,
-    generate_api_key,
-    _session,
     save_history,
+    set_user_credits,
+    update_user_role,
     verify_user,
+)
+from app.auth import (
+    is_postgres as auth_db_is_postgres,
+)
+from app.auth import (
+    is_postgres as auth_db_is_postgres,
 )
 from app.celery_app import celery_app
 from app.stt_engine import stt_service
@@ -213,6 +230,54 @@ def delete_user_endpoint(username: str, user: str = Depends(admin_user)):
     return {"status": "success"}
 
 
+class CreditsTopupIn(BaseModel):
+    username: str
+    amount: int
+
+
+class CreditsDeductIn(BaseModel):
+    username: str
+    amount: int
+
+
+class CreditsSetIn(BaseModel):
+    username: str
+    amount: int
+
+
+@app.get("/api/v1/users/{username}/credits")
+def get_credits_endpoint(username: str, user: str = Depends(admin_user)):
+    credits = get_user_credits(username)
+    return {"status": "success", "username": username, "credits": credits}
+
+
+@app.post("/api/v1/users/{username}/credits/topup")
+def topup_credits_endpoint(username: str, body: CreditsTopupIn, user: str = Depends(admin_user)):
+    if body.amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount harus > 0")
+    new_credits = add_credits(username, body.amount)
+    return {"status": "success", "username": username, "credits": new_credits}
+
+
+@app.post("/api/v1/users/{username}/credits/deduct")
+def deduct_credits_endpoint(username: str, body: CreditsDeductIn, user: str = Depends(admin_user)):
+    if body.amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount harus > 0")
+    success, remaining = deduct_credits(username, body.amount)
+    if not success:
+        raise HTTPException(status_code=400, detail="Kredit tidak cukup atau user tidak ditemukan")
+    return {"status": "success", "username": username, "credits": remaining}
+
+
+@app.post("/api/v1/users/{username}/credits/set")
+def set_credits_endpoint(username: str, body: CreditsSetIn, user: str = Depends(admin_user)):
+    if body.amount < 0:
+        raise HTTPException(status_code=400, detail="Amount tidak boleh negatif")
+    if not set_user_credits(username, body.amount):
+        raise HTTPException(status_code=400, detail="User tidak ditemukan")
+    return {"status": "success", "username": username, "credits": body.amount}
+
+
 def system_info() -> dict:
     import shutil
 
@@ -327,6 +392,11 @@ async def transcribe_audio(
     language: str = "id",
     user: str | None = Depends(current_user),
 ):
+    # Check credits (1 credit per transcribe)
+    if user:
+        success, remaining = deduct_credits(user, 1)
+        if not success:
+            raise HTTPException(status_code=402, detail=f"Kredit tidak cukup. Sisa: {remaining}")
     raw = await file.read()
     out = _transcribe_bytes(file.filename or "audio.wav", raw, language, user)
     if user:
@@ -334,7 +404,7 @@ async def transcribe_audio(
     if out["status"] == "error":
         code = 503 if "belum terinstall" in out.get("detail", "") else 400
         raise HTTPException(status_code=code, detail=out["detail"])
-    return {"status": "success", "data": out["data"]}
+    return {"status": "success", "data": out["data"], "credits_remaining": remaining if user else None}
 
 
 @app.post("/api/v1/transcribe-batch")
@@ -345,6 +415,11 @@ async def transcribe_batch(
 ):
     if len(files) > 20:
         raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
+    # Check credits (1 credit per file)
+    if user:
+        success, remaining = deduct_credits(user, len(files))
+        if not success:
+            raise HTTPException(status_code=402, detail=f"Kredit tidak cukup untuk {len(files)} file. Sisa: {remaining}")
     results = []
     for f in files:
         raw = await f.read()
@@ -352,7 +427,7 @@ async def transcribe_batch(
         if user:
             log_activity(user, 'transcribe', f'batch:{f.filename or "audio.wav"}')
     ok = sum(1 for r in results if r["status"] == "success")
-    return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results}
+    return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results, "credits_remaining": remaining if user else None}
 
 
 # Async transcription endpoints (Celery)
@@ -366,6 +441,11 @@ async def transcribe_async(
     user: str | None = Depends(current_user),
 ):
     """Submit transcription job to Celery queue."""
+    # Check credits (1 credit per transcribe)
+    if user:
+        success, remaining = deduct_credits(user, 1)
+        if not success:
+            raise HTTPException(status_code=402, detail=f"Kredit tidak cukup. Sisa: {remaining}")
     raw = await file.read()
     file_b64 = base64.b64encode(raw).decode()
 
@@ -376,7 +456,7 @@ async def transcribe_async(
     job_store[task.id] = {"status": "PENDING", "type": "transcribe", "filename": file.filename}
     if user:
         log_activity(user, 'transcribe_async', f'file:{file.filename or "audio.wav"}')
-    return {"status": "success", "task_id": task.id, "message": "Job queued"}
+    return {"status": "success", "task_id": task.id, "message": "Job queued", "credits_remaining": remaining}
 
 
 @app.post("/api/v1/transcribe-batch-async")
@@ -388,6 +468,11 @@ async def transcribe_batch_async(
     """Submit batch transcription job to Celery queue."""
     if len(files) > 20:
         raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
+    # Check credits (1 credit per file)
+    if user:
+        success, remaining = deduct_credits(user, len(files))
+        if not success:
+            raise HTTPException(status_code=402, detail=f"Kredit tidak cukup untuk {len(files)} file. Sisa: {remaining}")
 
     files_data = []
     for f in files:
@@ -405,7 +490,7 @@ async def transcribe_batch_async(
     job_store[task.id] = {"status": "PENDING", "type": "batch", "count": len(files)}
     if user:
         log_activity(user, 'transcribe_batch_async', f'count:{len(files)}')
-    return {"status": "success", "task_id": task.id, "message": "Batch job queued"}
+    return {"status": "success", "task_id": task.id, "message": "Batch job queued", "credits_remaining": remaining}
 
 
 @app.get("/api/v1/jobs/{task_id}")

@@ -49,7 +49,14 @@ def auth_token(client):
         json={"username": "admin", "password": "admin"}
     )
     assert response.status_code == 200
-    return response.json()["access_token"]
+    token = response.json()["access_token"]
+    # Give admin user credits for testing
+    client.post(
+        "/api/v1/users/admin/credits/topup",
+        json={"username": "admin", "amount": 100},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    return token
 
 
 @pytest.fixture(scope="function")

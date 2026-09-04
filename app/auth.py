@@ -71,8 +71,8 @@ def get_engine():
                 else:
                     conn.exec_driver_sql("ALTER TABLE history ADD COLUMN IF NOT EXISTS data TEXT DEFAULT '{}'")
                     conn.exec_driver_sql("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'")
-            except Exception:
-                pass
+            except (Exception, OSError):
+                pass  # Migration may fail on old DBs, that's OK
     return _engine
 
 
@@ -97,6 +97,7 @@ class User(Base):
     salt: Mapped[str] = mapped_column(String(64))
     pwdhash: Mapped[str] = mapped_column(String(128))
     role: Mapped[str] = mapped_column(String(20), default="user")
+    credits: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class History(Base):
@@ -161,7 +162,7 @@ def make_token(username: str) -> str:
 def parse_token(token: str) -> str | None:
     try:
         return jwt.decode(token, SECRET, algorithms=[ALGO]).get("sub")
-    except Exception:
+    except jwt.PyJWTError:
         return None
 
 
@@ -362,3 +363,46 @@ def delete_user(username: str) -> bool:
         s.delete(user)
         s.commit()
     return True
+
+
+def get_user_credits(username: str) -> int:
+    with _session() as s:
+        user = s.get(User, username)
+        return user.credits if user else 0
+
+
+def add_credits(username: str, amount: int) -> int:
+    if amount <= 0:
+        return 0
+    with _session() as s:
+        user = s.get(User, username)
+        if user is None:
+            return 0
+        user.credits += amount
+        s.commit()
+        return user.credits
+
+
+def deduct_credits(username: str, amount: int) -> tuple[bool, int]:
+    """Deduct credits. Returns (success, remaining_credits)."""
+    if amount <= 0:
+        return False, 0
+    with _session() as s:
+        user = s.get(User, username)
+        if user is None or user.credits < amount:
+            return False, user.credits if user else 0
+        user.credits -= amount
+        s.commit()
+        return True, user.credits
+
+
+def set_user_credits(username: str, amount: int) -> bool:
+    if amount < 0:
+        return False
+    with _session() as s:
+        user = s.get(User, username)
+        if user is None:
+            return False
+        user.credits = amount
+        s.commit()
+        return True

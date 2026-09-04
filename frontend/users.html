@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Manajemen User — STT Engine</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
@@ -11,9 +12,12 @@
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
 <div class="flex min-h-screen">
   <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
-    <div class="flex items-center justify-between px-4 py-4">
-      <span id="brand" class="font-bold text-lg">🎙️ STT Engine</span>
-      <button id="collapseBtn" class="bg-slate-800 rounded-lg px-2 py-1 text-sm" title="Collapse">⇔</button>
+    <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
+      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
+        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
+        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      </a>
+      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
     </div>
     <nav class="px-2 space-y-1 text-sm">
       <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
@@ -58,7 +62,7 @@
           <button id="createUserBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Tambah User</button>
         </div>
         <div class="overflow-auto"><table class="w-full text-sm text-slate-800 dark:text-slate-200">
-          <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800"><th class="py-2">Username</th><th>Role</th><th>Aksi</th></tr></thead>
+          <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800"><th class="py-2">Username</th><th>Role</th><th>Kredit</th><th>Aksi</th></tr></thead>
           <tbody id="userBody"></tbody>
         </table></div>
       </div>
@@ -78,7 +82,6 @@ const sb = document.getElementById('sidebar');
 function setCollapsed(c) {
   sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
   document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
-  document.getElementById('brand').textContent = c ? '🎙️' : '🎙️ STT Engine';
   localStorage.setItem('sb_collapsed', c ? '1' : '0');
 }
 document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
@@ -97,8 +100,8 @@ async function loadUsers() {
     const j = await r.json();
     const rows = j.users || [];
     const btnClass = "text-xs border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded px-1.5 py-0.5 mr-1 transition";
-    body.innerHTML = rows.map(u => `<tr class="border-t border-slate-200 dark:border-slate-800/80"><td class="py-2 font-medium">${u.username}</td><td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}">${u.role}</span></td><td class="py-2 whitespace-nowrap">${u.username !== 'admin' ? `<button class="${btnClass}" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button> <button class="text-xs bg-rose-600 hover:bg-rose-700 text-white rounded px-2 py-1 transition" onclick="deleteUser('${u.username}')">Hapus</button>` : '<span class="text-xs text-slate-400 dark:text-slate-500">(admin utama)</span>'}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="3">Belum ada user.</td></tr>';
-  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-rose-500" colspan="3">Gagal memuat: ' + e.message + '</td></tr>'; }
+    body.innerHTML = rows.map(u => `<tr class="border-t border-slate-200 dark:border-slate-800/80"><td class="py-2 font-medium">${u.username}</td><td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}">${u.role}</span></td><td class="py-2"><span class="font-mono text-indigo-600 dark:text-indigo-400">${u.credits || 0}</span></td><td class="py-2 whitespace-nowrap">${u.username !== 'admin' ? `<button class="${btnClass}" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button> <button class="text-xs border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="topupCredits('${u.username}')">+ Kredit</button> <button class="text-xs border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="deductCredits('${u.username}')">- Kredit</button> <button class="text-xs border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="setCredits('${u.username}')">Set Kredit</button> <button class="text-xs bg-rose-600 hover:bg-rose-700 text-white rounded px-2 py-1 transition" onclick="deleteUser('${u.username}')">Hapus</button>` : '<span class="text-xs text-slate-400 dark:text-slate-500">(admin utama)</span>'}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="4">Belum ada user.</td></tr>';
+  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-rose-500" colspan="4">Gagal memuat: ' + e.message + '</td></tr>'; }
 }
 document.getElementById('userRefreshBtn').onclick = loadUsers;
 
@@ -143,6 +146,78 @@ async function deleteUser(username) {
     });
     if (!r.ok) throw new Error((await r.json()).detail || 'Gagal menghapus user');
     UI.ok('User ' + username + ' dihapus');
+    loadUsers();
+  } catch (e) { UI.err(e.message); }
+}
+
+async function topupCredits(username) {
+  const { value: amount } = await Swal.fire({
+    title: `Topup Kredit: ${username}`,
+    input: 'number',
+    inputLabel: 'Jumlah kredit',
+    inputPlaceholder: '10',
+    inputAttributes: { min: '1', step: '1' },
+    showCancelButton: true,
+    confirmButtonText: 'Topup',
+    cancelButtonText: 'Batal'
+  });
+  if (!amount) return;
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/topup`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ username, amount: parseInt(amount) }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || 'Gagal topup kredit');
+    UI.ok(`Kredit ${username} ditambah ${amount}. Total: ${j.credits}`);
+    loadUsers();
+  } catch (e) { UI.err(e.message); }
+}
+
+async function deductCredits(username) {
+  const { value: amount } = await Swal.fire({
+    title: `Kurangi Kredit: ${username}`,
+    input: 'number',
+    inputLabel: 'Jumlah kredit',
+    inputPlaceholder: '5',
+    inputAttributes: { min: '1', step: '1' },
+    showCancelButton: true,
+    confirmButtonText: 'Kurangi',
+    cancelButtonText: 'Batal'
+  });
+  if (!amount) return;
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/deduct`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ username, amount: parseInt(amount) }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || 'Gagal kurangi kredit');
+    UI.ok(`Kredit ${username} dikurangi ${amount}. Sisa: ${j.credits}`);
+    loadUsers();
+  } catch (e) { UI.err(e.message); }
+}
+
+async function setCredits(username) {
+  const { value: amount } = await Swal.fire({
+    title: `Set Kredit: ${username}`,
+    input: 'number',
+    inputLabel: 'Jumlah kredit baru',
+    inputPlaceholder: '100',
+    inputAttributes: { min: '0', step: '1' },
+    showCancelButton: true,
+    confirmButtonText: 'Set',
+    cancelButtonText: 'Batal'
+  });
+  if (amount === '') return;
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/set`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ username, amount: parseInt(amount) }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || 'Gagal set kredit');
+    UI.ok(`Kredit ${username} diset ke ${amount}`);
     loadUsers();
   } catch (e) { UI.err(e.message); }
 }
