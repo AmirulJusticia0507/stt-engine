@@ -7,6 +7,7 @@
 - [Bab 3 — Backend](#bab-3--backend)
 - [Bab 4 — Frontend](#bab-4--frontend)
 - [Bab 5 — Menjalankan di Laptop GPU](#bab-5--menjalankan-di-laptop-gpu)
+- [Bab 6 — Status Fitur](#bab-6--status-fitur)
 
 ---
 
@@ -140,3 +141,31 @@ $env:DATABASE_URL="postgresql+psycopg://postgres:postgres123@localhost:5432/stt"
 uvicorn app.main:app --port 8000
 # buka http://localhost:8000/ -> redirect ke login/dashboard
 ```
+
+---
+
+## Bab 6 — Status Fitur
+
+### ✅ Sudah selesai
+
+- [x] Blueprint + dokumentasi arsitektur
+- [x] Backend FastAPI: REST upload, WS streaming, `/health`
+- [x] Inference Faster-Whisper lazy-load (CPU `int8` / GPU `float16`, `STT_MODEL`)
+- [x] Halaman Login / Lupa / Reset password terpisah
+- [x] Dashboard: sidebar collapsible, header, footer (Tailwind + SweetAlert2)
+- [x] Menu Transcribe (upload + mic), Riwayat, Pengaturan
+- [x] Auth JWT + riwayat per user, dual-DB SQLite/Postgres
+- [x] Ekspor transkrip TXT / SRT / VTT per riwayat
+- [x] Docker Compose FastAPI + Postgres + panduan GPU
+- [x] README 5 bab
+
+### ⬜ Belum dikerjakan / belum dibuat
+
+- [ ] Manajemen user & roles (admin vs user biasa)
+- [ ] Halaman Model & Perangkat (ganti model + pantau VRAM dari dashboard)
+- [ ] Antrean file besar (Celery + Redis)
+- [ ] Reset password via email (sekarang token dikembalikan langsung)
+- [ ] Batch upload banyak file sekaligus
+- [ ] API key untuk pemakaian aplikasi lain
+- [ ] Log audit aktivitas user
+- [ ] Tes otomatis (pytest) + CI
