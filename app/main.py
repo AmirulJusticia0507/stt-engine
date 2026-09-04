@@ -1,0 +1,119 @@
+"""FastAPI entrypoint: REST upload + WebSocket streaming + serve frontend."""
+from __future__ import annotations
+
+import io
+import logging
+import wave
+from pathlib import Path
+
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from app.stt_engine import stt_service
+from app.utils import normalize_to_wav_16k, save_upload_to_temp
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("stt-engine")
+
+app = FastAPI(
+    title="Voice-to-Text Engine API",
+    description="High-performance Speech-to-Text REST & WebSocket API (FastAPI + Faster-Whisper)",
+    version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ketat-kan di produksi
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", **stt_service.status}
+
+
+@app.post("/api/v1/transcribe")
+async def transcribe_audio(file: UploadFile = File(...), language: str = "id"):
+    suffix = Path(file.filename or "audio.wav").suffix or ".wav"
+    if suffix.lower() not in (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm"):
+        raise HTTPException(status_code=400, detail=f"Format {suffix} tidak didukung")
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="File kosong")
+    tmp = save_upload_to_temp(raw, suffix)
+    try:
+        result = stt_service.transcribe_file(tmp, language=language)
+        return {"status": "success", "data": result}
+    except RuntimeError as e:  # mis. faster-whisper belum install
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.exception("transcribe failed")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        tmp.unlink(missing_ok=True)
+        conv = tmp.with_suffix(".16k.wav")
+        conv.unlink(missing_ok=True)
+
+
+@app.websocket("/ws/v1/transcribe-stream")
+async def websocket_transcribe(websocket: WebSocket, language: str = "id"):
+    """Terima PCM 16-bit 16kHz mono (bytes), buffer ~1.5 dtk, lalu transcribe."""
+    await websocket.accept()
+    # 16000 sample/dtk * 2 byte * 1.5 dtk = 48000 byte
+    min_bytes = 48000
+    buffer = bytearray()
+    try:
+        while True:
+            chunk = await websocket.receive_bytes()
+            buffer.extend(chunk)
+            await websocket.send_json({"event": "chunk_received", "bytes_length": len(chunk)})
+
+            if len(buffer) < min_bytes:
+                continue
+
+            pcm = bytes(buffer)
+            buffer.clear()
+            try:
+                wav_path = _pcm_to_wav_file(pcm)
+                try:
+                    norm = normalize_to_wav_16k(wav_path)
+                    result = stt_service.transcribe_file(norm, language=language)
+                    await websocket.send_json({"event": "transcript", "data": result})
+                finally:
+                    wav_path.unlink(missing_ok=True)
+            except RuntimeError as e:
+                await websocket.send_json({"event": "error", "detail": str(e)})
+            except Exception as e:
+                await websocket.send_json({"event": "error", "detail": str(e)})
+    except WebSocketDisconnect:
+        logger.info("WS client disconnected")
+
+
+def _pcm_to_wav_file(pcm: bytes, sample_rate: int = 16000) -> Path:
+    tmp = save_upload_to_temp(b"", ".wav")
+    with wave.open(str(tmp), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sample_rate)
+        w.writeframes(pcm)
+    return tmp
+
+
+# Serve frontend Vue (single-file) di root "/" jika ada
+if FRONTEND_DIR.exists():
+    index = FRONTEND_DIR / "index.html"
+    if index.exists():
+
+        @app.get("/", include_in_schema=False)
+        def serve_index():
+            return FileResponse(str(index))
+
+    app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
