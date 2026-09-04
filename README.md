@@ -116,6 +116,21 @@ disajikan otomatis oleh backend di `/`:
 
 ## Bab 5 — Menjalankan di Laptop GPU
 
+### 5.1 Docker Compose (disarankan)
+
+```powershell
+git pull
+# opsional: salin .env.example -> .env lalu isi POSTGRES_PASSWORD, JWT_SECRET, ADMIN_PASS
+docker compose up -d --build
+docker compose logs -f api
+# buka http://localhost:8000/ -> redirect ke login/dashboard
+```
+
+Untuk GPU NVIDIA: install NVIDIA Container Toolkit, lalu uncomment blok
+`deploy.resources.reservations` di `docker-compose.yml`.
+
+### 5.2 Manual (tanpa Docker)
+
 ```powershell
 git pull
 pip install -r requirements.txt

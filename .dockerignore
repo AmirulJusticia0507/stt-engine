@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+venv/
+.env
+data/
+models/
+*.16k.wav
+.git/

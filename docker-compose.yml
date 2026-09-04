@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-stt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ganti-ini}
+      POSTGRES_DB: ${POSTGRES_DB:-stt}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stt} -d ${POSTGRES_DB:-stt}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stt}:${POSTGRES_PASSWORD:-ganti-ini}@db:5432/${POSTGRES_DB:-stt}
+      JWT_SECRET: ${JWT_SECRET:-ganti-di-produksi}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-admin}
+      STT_MODEL: ${STT_MODEL:-large-v3-turbo}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Aktifkan GPU di laptop NVIDIA: butuh NVIDIA Container Toolkit,
+    # lalu uncomment blok deploy berikut:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  pgdata:
