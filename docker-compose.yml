@@ -14,6 +14,19 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build: .
     restart: unless-stopped
@@ -21,12 +34,15 @@ services:
       - "${APP_PORT:-8000}:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stt}:${POSTGRES_PASSWORD:-ganti-ini}@db:5432/${POSTGRES_DB:-stt}
+      REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET:-ganti-di-produksi}
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASS: ${ADMIN_PASS:-admin}
       STT_MODEL: ${STT_MODEL:-large-v3-turbo}
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     # Aktifkan GPU di laptop NVIDIA: butuh NVIDIA Container Toolkit,
     # lalu uncomment blok deploy berikut:
@@ -38,5 +54,49 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  celery-worker:
+    build: .
+    restart: unless-stopped
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stt}:${POSTGRES_PASSWORD:-ganti-ini}@db:5432/${POSTGRES_DB:-stt}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-ganti-di-produksi}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-admin}
+      STT_MODEL: ${STT_MODEL:-large-v3-turbo}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Aktifkan GPU di laptop NVIDIA: butuh NVIDIA Container Toolkit,
+    # lalu uncomment blok deploy berikut:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  celery-beat:
+    build: .
+    restart: unless-stopped
+    command: celery -A app.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stt}:${POSTGRES_PASSWORD:-ganti-ini}@db:5432/${POSTGRES_DB:-stt}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-ganti-di-produksi}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-admin}
+      STT_MODEL: ${STT_MODEL:-large-v3-turbo}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  redisdata:

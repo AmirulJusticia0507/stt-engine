@@ -37,8 +37,12 @@ from app.auth import (
     save_history,
     verify_user,
 )
+from app.celery_app import celery_app
 from app.stt_engine import stt_service
 from app.utils import normalize_to_wav_16k, save_upload_to_temp
+
+# Job status storage (in production, use Redis)
+job_store: dict[str, dict] = {}
 
 ensure_admin()
 bearer = HTTPBearer(auto_error=False)
@@ -346,6 +350,93 @@ async def transcribe_batch(
             log_activity(user, 'transcribe', f'batch:{f.filename or "audio.wav"}')
     ok = sum(1 for r in results if r["status"] == "success")
     return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results}
+
+
+# Async transcription endpoints (Celery)
+import base64
+
+
+@app.post("/api/v1/transcribe-async")
+async def transcribe_async(
+    file: UploadFile = File(...),
+    language: str = "id",
+    user: str | None = Depends(current_user),
+):
+    """Submit transcription job to Celery queue."""
+    raw = await file.read()
+    file_b64 = base64.b64encode(raw).decode()
+
+    task = celery_app.send_task(
+        "app.tasks.transcribe_file_task",
+        args=[file_b64, file.filename or "audio.wav", language, user, "upload"],
+    )
+    job_store[task.id] = {"status": "PENDING", "type": "transcribe", "filename": file.filename}
+    if user:
+        log_activity(user, 'transcribe_async', f'file:{file.filename or "audio.wav"}')
+    return {"status": "success", "task_id": task.id, "message": "Job queued"}
+
+
+@app.post("/api/v1/transcribe-batch-async")
+async def transcribe_batch_async(
+    files: list[UploadFile] = File(...),
+    language: str = "id",
+    user: str | None = Depends(current_user),
+):
+    """Submit batch transcription job to Celery queue."""
+    if len(files) > 20:
+        raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
+
+    files_data = []
+    for f in files:
+        raw = await f.read()
+        files_data.append({
+            "filename": f.filename or "audio.wav",
+            "data_b64": base64.b64encode(raw).decode(),
+            "language": language,
+        })
+
+    task = celery_app.send_task(
+        "app.tasks.transcribe_batch_task",
+        args=[files_data, user],
+    )
+    job_store[task.id] = {"status": "PENDING", "type": "batch", "count": len(files)}
+    if user:
+        log_activity(user, 'transcribe_batch_async', f'count:{len(files)}')
+    return {"status": "success", "task_id": task.id, "message": "Batch job queued"}
+
+
+@app.get("/api/v1/jobs/{task_id}")
+def get_job_status(task_id: str, user: str | None = Depends(current_user)):
+    """Get Celery job status."""
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+
+    # Check local store first
+    if task_id in job_store:
+        job_info = job_store[task_id].copy()
+    else:
+        job_info = {}
+
+    # Get actual Celery result
+    result = celery_app.AsyncResult(task_id)
+    job_info.update({
+        "task_id": task_id,
+        "status": result.state,
+        "result": result.result if result.ready() else None,
+    })
+
+    # Update local store
+    job_store[task_id] = job_info
+    return {"status": "success", "data": job_info}
+
+
+@app.get("/api/v1/jobs")
+def list_jobs(user: str | None = Depends(current_user)):
+    """List all jobs for current user."""
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    # Return jobs from store (in production, filter by user)
+    return {"status": "success", "jobs": job_store}
 
 
 @app.websocket("/ws/v1/transcribe-stream")
