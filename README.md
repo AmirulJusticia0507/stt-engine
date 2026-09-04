@@ -161,11 +161,11 @@ uvicorn app.main:app --port 8000
 - [x] Batch transcribe (hingga 20 file sekaligus)
 - [x] Audit log (backend + UI di dashboard)
 - [x] API key generate/list/revoke + header `X-API-Key` auth
+- [x] Manajemen user & roles (admin vs user biasa)
 - [x] README 5 bab
 
 ### ⬜ Belum dikerjakan / belum dibuat
 
-- [ ] Manajemen user & roles (admin vs user biasa)
 - [ ] Antrean file besar (Celery + Redis)
 - [ ] Reset password via email (sekarang token dikembalikan langsung)
 - [ ] Tes otomatis (pytest) + CI
