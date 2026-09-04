@@ -259,3 +259,15 @@ def log_activity(username: str, action: str, detail: str = ""):
     with _session() as s:
         s.add(AuditLog(username=username, action=action, detail=detail[:2000]))
         s.commit()
+
+
+class APIKey(Base):
+    __tablename__ = "api_keys"
+    key: Mapped[str] = mapped_column(String(128), unique=True, index=True, primary_key=True)
+    username: Mapped[str] = mapped_column(String(150), index=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+def generate_api_key() -> str:
+    return secrets.token_urlsafe(32)

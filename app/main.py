@@ -4,8 +4,9 @@ from __future__ import annotations
 import logging
 import wave
 from pathlib import Path
+from sqlalchemy import select
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, Header, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -15,13 +16,17 @@ from pydantic import BaseModel
 from app.auth import (
     consume_reset_token,
     create_reset_token,
-    ensure_export_history,
+    ensure_admin,
+    export_history,
     get_history,
     is_postgres as auth_db_is_postgres,
     list_history,
     log_activity,
     make_token,
     parse_token,
+    APIKey,
+    generate_api_key,
+    _session,
     save_history,
     verify_user,
 )
@@ -32,10 +37,16 @@ ensure_admin()
 bearer = HTTPBearer(auto_error=False)
 
 
-def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer)) -> str | None:
-    if creds is None:
-        return None
-    return parse_token(creds.credentials)
+def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer), x_api_key: str | None = Header(None)) -> str | None:
+    if creds is not None:
+        token = parse_token(creds.credentials)
+        if token:
+            return token
+    if x_api_key:
+        row = _session().get(APIKey, x_api_key)
+        if row and row.is_active:
+            return row.username
+    return None
 
 
 class LoginIn(BaseModel):
@@ -106,6 +117,38 @@ def me(user: str | None = Depends(current_user)):
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
     return {"username": user}
+
+
+@app.post("/api/v1/api-keys")
+def create_api_key(user: str | None = Depends(current_user)):
+    if user != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    key = generate_api_key()
+    with _session() as s:
+        s.add(APIKey(key=key, username="admin"))
+        s.commit()
+    return {"status": "success", "key": key}
+
+
+@app.get("/api/v1/api-keys")
+def list_api_keys(user: str | None = Depends(current_user)):
+    if user != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    with _session() as s:
+        rows = s.execute(select(APIKey)).scalars().all()
+    return {"status": "success", "keys": [r.key for r in rows if r.is_active]}
+
+
+@app.delete("/api/v1/api-keys/{key}")
+def revoke_api_key(key: str, user: str | None = Depends(current_user)):
+    if user != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    with _session() as s:
+        row = s.get(APIKey, key)
+        if row:
+            row.is_active = False
+            s.commit()
+    return {"status": "success"}
 
 
 def system_info() -> dict:
