@@ -156,16 +156,16 @@ uvicorn app.main:app --port 8000
 - [x] Menu Transcribe (upload + mic), Riwayat, Pengaturan
 - [x] Auth JWT + riwayat per user, dual-DB SQLite/Postgres
 - [x] Ekspor transkrip TXT / SRT / VTT per riwayat
-- [x] Docker Compose FastAPI + Postgres + panduan GPU
+- [x] Docker Compose FastAPI + Postgres + Redis + Celery + panduan GPU
 - [x] Halaman Model & Perangkat (`GET /api/v1/system`, ganti model runtime)
 - [x] Batch transcribe (hingga 20 file sekaligus)
 - [x] Audit log (backend + UI di dashboard)
 - [x] API key generate/list/revoke + header `X-API-Key` auth
 - [x] Manajemen user & roles (admin vs user biasa)
+- [x] Antrean file besar (Celery + Redis) - async transcribe + job status
 - [x] README 5 bab
 
 ### ⬜ Belum dikerjakan / belum dibuat
 
-- [ ] Antrean file besar (Celery + Redis)
 - [ ] Reset password via email (sekarang token dikembalikan langsung)
 - [ ] Tes otomatis (pytest) + CI
