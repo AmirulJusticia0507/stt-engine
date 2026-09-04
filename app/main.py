@@ -1,18 +1,34 @@
 """FastAPI entrypoint: REST upload + WebSocket streaming + serve frontend."""
 from __future__ import annotations
 
-import io
 import logging
 import wave
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
+from app.auth import ensure_admin, list_history, make_token, parse_token, save_history, verify_user
 from app.stt_engine import stt_service
 from app.utils import normalize_to_wav_16k, save_upload_to_temp
+
+ensure_admin()
+bearer = HTTPBearer(auto_error=False)
+
+
+def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer)) -> str | None:
+    if creds is None:
+        return None
+    return parse_token(creds.credentials)
+
+
+class LoginIn(BaseModel):
+    username: str
+    password: str
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("stt-engine")
@@ -40,8 +56,33 @@ def health_check():
     return {"status": "ok", **stt_service.status}
 
 
+@app.post("/api/v1/auth/login")
+def login(body: LoginIn):
+    if not verify_user(body.username, body.password):
+        raise HTTPException(status_code=401, detail="Kredensial salah")
+    return {"access_token": make_token(body.username), "token_type": "bearer"}
+
+
+@app.get("/api/v1/me")
+def me(user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"username": user}
+
+
+@app.get("/api/v1/history")
+def history(user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"status": "success", "data": list_history(user)}
+
+
 @app.post("/api/v1/transcribe")
-async def transcribe_audio(file: UploadFile = File(...), language: str = "id"):
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    language: str = "id",
+    user: str | None = Depends(current_user),
+):
     suffix = Path(file.filename or "audio.wav").suffix or ".wav"
     if suffix.lower() not in (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm"):
         raise HTTPException(status_code=400, detail=f"Format {suffix} tidak didukung")
@@ -51,6 +92,11 @@ async def transcribe_audio(file: UploadFile = File(...), language: str = "id"):
     tmp = save_upload_to_temp(raw, suffix)
     try:
         result = stt_service.transcribe_file(tmp, language=language)
+        if user and result.get("text"):
+            try:
+                save_history(user, f"upload:{file.filename}", language, result["text"])
+            except Exception:
+                pass
         return {"status": "success", "data": result}
     except RuntimeError as e:  # mis. faster-whisper belum install
         raise HTTPException(status_code=503, detail=str(e))
@@ -64,9 +110,10 @@ async def transcribe_audio(file: UploadFile = File(...), language: str = "id"):
 
 
 @app.websocket("/ws/v1/transcribe-stream")
-async def websocket_transcribe(websocket: WebSocket, language: str = "id"):
+async def websocket_transcribe(websocket: WebSocket, language: str = "id", token: str | None = None):
     """Terima PCM 16-bit 16kHz mono (bytes), buffer ~1.5 dtk, lalu transcribe."""
     await websocket.accept()
+    ws_user = parse_token(token) if token else None
     # 16000 sample/dtk * 2 byte * 1.5 dtk = 48000 byte
     min_bytes = 48000
     buffer = bytearray()
@@ -86,6 +133,11 @@ async def websocket_transcribe(websocket: WebSocket, language: str = "id"):
                 try:
                     norm = normalize_to_wav_16k(wav_path)
                     result = stt_service.transcribe_file(norm, language=language)
+                    if ws_user and result.get("text"):
+                        try:
+                            save_history(ws_user, "mic-stream", language, result["text"])
+                        except Exception:
+                            pass
                     await websocket.send_json({"event": "transcript", "data": result})
                 finally:
                     wav_path.unlink(missing_ok=True)

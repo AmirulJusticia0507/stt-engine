@@ -4,3 +4,4 @@ faster-whisper>=1.0
 torch --index-url https://download.pytorch.org/whl/cpu
 websockets>=12
 python-multipart>=0.0.9
+PyJWT>=2.8
