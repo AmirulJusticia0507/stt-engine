@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "C:\\laragon\\bin\\python\\python-3.13\\python.exe",
+  "python.pythonPath": "C:\\laragon\\bin\\python\\python-3.13\\python.exe",
+  "python.analysis.extraPaths": [
+    "C:\\laragon\\bin\\python\\python-3.13\\Lib\\site-packages"
+  ],
+  "pyright.analysis.extraPaths": [
+    "C:\\laragon\\bin\\python\\python-3.13\\Lib\\site-packages"
+  ],
+  "python.analysis.autoSearchPaths": true
+}

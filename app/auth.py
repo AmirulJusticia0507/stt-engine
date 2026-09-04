@@ -59,7 +59,7 @@ def get_engine():
             kwargs["connect_args"] = {"check_same_thread": False}
         _engine = create_engine(url, **kwargs)
         Base.metadata.create_all(_engine)
-        with _engine.begin() as conn:  # migrasi ringan DB lama -> kolom data & role
+        with _engine.begin() as conn:  # migrasi ringan DB lama -> kolom data, role & credits
             try:
                 if _engine.dialect.name == "sqlite":
                     cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(history)").fetchall()]
@@ -68,9 +68,12 @@ def get_engine():
                     user_cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(users)").fetchall()]
                     if "role" not in user_cols:
                         conn.exec_driver_sql("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+                    if "credits" not in user_cols:
+                        conn.exec_driver_sql("ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 0")
                 else:
                     conn.exec_driver_sql("ALTER TABLE history ADD COLUMN IF NOT EXISTS data TEXT DEFAULT '{}'")
                     conn.exec_driver_sql("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'")
+                    conn.exec_driver_sql("ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 0")
             except (Exception, OSError):
                 pass  # Migration may fail on old DBs, that's OK
     return _engine

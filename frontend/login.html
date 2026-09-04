@@ -4,31 +4,65 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Masuk — STT Engine</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 flex items-center justify-center p-4 transition-colors duration-200">
-  <div class="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative transition-colors">
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">STT Engine</h1>
-        <p class="text-sm text-gray-500 dark:text-slate-400">Masuk untuk lanjut ke dashboard</p>
+<body class="min-h-screen bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-950 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-4 transition-colors duration-300 relative overflow-hidden">
+
+  <!-- Ambient Glow Effects -->
+  <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl shadow-indigo-950/40 w-full max-w-md p-8 relative transition-all duration-300">
+    
+    <!-- Top Bar: Logo & Theme Toggle -->
+    <div class="flex justify-between items-start mb-6">
+      <div class="flex items-center gap-3">
+        <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-70 group-hover:opacity-100 transition duration-300"></div>
+          <img src="assets/logo.png" alt="STT Engine Logo" class="relative w-12 h-12 rounded-xl object-cover shadow-md border border-white/20" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 dark:from-indigo-400 dark:via-purple-300 dark:to-pink-400">
+            STT Engine
+          </h1>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Speech-to-Text AI Platform</p>
+        </div>
       </div>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition" title="Ganti Mode">
+      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition shadow-sm cursor-pointer" title="Ganti Mode">
         <span class="theme-icon">🌙</span>
       </button>
     </div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">Username</label>
-    <input id="u" value="admin" class="mt-1 w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
-    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mt-4">Password</label>
-    <input id="p" value="admin" type="password" class="mt-1 w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
-    <button id="btn" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 shadow-md transition">Masuk</button>
-    <div class="flex justify-between mt-4 text-sm">
-      <a href="forgot.html" class="text-indigo-600 dark:text-indigo-400 hover:underline">Lupa password?</a>
-      <span class="text-gray-400 dark:text-slate-500">admin / admin</span>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-bold text-slate-800 dark:text-white">Selamat Datang 👋</h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400">Masukkan kredensial Anda untuk masuk ke dashboard.</p>
+    </div>
+
+    <!-- Form Controls -->
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Username</label>
+        <input id="u" value="admin" class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Password</label>
+        <input id="p" value="admin" type="password" class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition" />
+      </div>
+
+      <button id="btn" class="w-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white font-semibold rounded-xl py-3 shadow-lg shadow-indigo-600/30 transition transform active:scale-[0.99] cursor-pointer">
+        Masuk ke Dashboard
+      </button>
+    </div>
+
+    <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/80 text-xs">
+      <a href="forgot.html" class="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Lupa password?</a>
+      <span class="text-slate-400 dark:text-slate-500">Default: admin / admin</span>
     </div>
   </div>
+
   <script src="assets/auth.js"></script>
   <script>
     if (Auth.token) location.replace('dashboard.html');

@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import os
-import aiosmtplib
 from email.message import EmailMessage
 from email.utils import formataddr
+
+import aiosmtplib
 
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))

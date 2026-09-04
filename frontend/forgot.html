@@ -4,18 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lupa Password — STT Engine</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600 dark:from-slate-950 dark:via-orange-950 dark:to-slate-900 flex items-center justify-center p-4 transition-colors duration-200">
-  <div class="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative transition-colors">
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Lupa Password</h1>
-        <p class="text-sm text-gray-500 dark:text-slate-400">Masukkan username untuk membuat token reset.</p>
+  <div class="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-8 relative transition-colors">
+    <div class="flex justify-between items-start mb-6">
+      <div class="flex items-center gap-3">
+        <img src="assets/logo.png" alt="Logo" class="w-12 h-12 rounded-xl object-cover shadow-md border border-white/20" />
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Lupa Password</h1>
+          <p class="text-xs text-gray-500 dark:text-slate-400">Masukkan username untuk membuat token reset.</p>
+        </div>
       </div>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition" title="Ganti Mode">
+      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition" title="Ganti Mode">
         <span class="theme-icon">🌙</span>
       </button>
     </div>

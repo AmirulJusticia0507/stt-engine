@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import base64
 import logging
-import tempfile
 from pathlib import Path
 
+from app.auth import save_history
 from app.celery_app import celery_app
 from app.stt_engine import stt_service
-from app.auth import save_history, _session
-from app.utils import normalize_to_wav_16k, save_upload_to_temp
+from app.utils import save_upload_to_temp
 
 logger = logging.getLogger("stt-engine.tasks")
 
