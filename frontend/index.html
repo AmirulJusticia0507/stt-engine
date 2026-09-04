@@ -2,11 +2,11 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="refresh" content="0;url=login.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>STT Engine</title>
 </head>
 <body>
-  <p>Redirect ke <a href="login.html">login</a>…</p>
+  <p>Redirect ke <a href="dashboard.html">dashboard</a>…</p>
   <script>
     location.replace((localStorage.getItem('stt_token') ? 'dashboard.html' : 'login.html'));
   </script>

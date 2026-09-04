@@ -3,38 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard — STT Engine</title>
+  <title>Pengaturan — STT Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
 <div class="flex min-h-screen">
-  <!-- SIDEBAR -->
   <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
     <div class="flex items-center justify-between px-4 py-4">
       <span id="brand" class="font-bold text-lg">🎙️ STT Engine</span>
       <button id="collapseBtn" class="bg-slate-800 rounded-lg px-2 py-1 text-sm" title="Collapse">⇔</button>
     </div>
     <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
       <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
       <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
       <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="settings.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
+      <a href="settings.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">⚙️ <span class="lbl">Pengaturan</span></a>
       <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
     </nav>
     <div class="flex-1"></div>
     <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
   </aside>
 
-  <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0">
-    <!-- HEADER -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
       <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Dashboard</h1>
+      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Pengaturan</h1>
       <div class="flex-1"></div>
       <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
       <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
@@ -44,32 +41,42 @@
       <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
     </header>
 
-    <!-- CONTENT -->
-    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
-      <!-- DASHBOARD OVERVIEW -->
-      <section>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stJobs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Transkripsi</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stWs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Event WebSocket</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stModel" class="text-lg font-bold text-slate-900 dark:text-white">-</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Model / Device</div>
-          </div>
+    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto space-y-4">
+      <!-- TEMA & TAMPILAN -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
+        <h2 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">🎨 Tampilan Dashboard</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Pilih mode tampilan favorit Anda untuk semua halaman dan card.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+          <button id="btnLight" class="p-4 rounded-xl border text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-sm">☀️ Mode Terang</div>
+              <div class="text-xs text-slate-500">Tampilan latar putih bersih</div>
+            </div>
+            <span class="text-xl">⚪</span>
+          </button>
+          <button id="btnDark" class="p-4 rounded-xl border text-left transition flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-sm">🌙 Mode Gelap</div>
+              <div class="text-xs text-slate-500">Tampilan gelap yang nyaman</div>
+            </div>
+            <span class="text-xl">🌙</span>
+          </button>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-4 transition">
-          <b class="text-slate-900 dark:text-white">Aktivitas terakhir</b>
-          <pre id="activity" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-2 text-xs overflow-auto">Belum ada aktivitas.</pre>
+      </div>
+
+      <!-- KONEKSI & SYSTEM -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
+        <h2 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">🌐 API & Server</h2>
+        <div class="space-y-3 max-w-md">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Base URL API</label>
+            <input id="apiBaseInput" type="text" class="mt-1 w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <button id="saveApiBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Simpan Pengaturan</button>
         </div>
-      </section>
+      </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
   </div>
 </div>
@@ -79,9 +86,7 @@
 if (!Auth.requireAuth()) throw new Error('redirect');
 document.getElementById('who').textContent = Auth.user;
 document.getElementById('footUser').textContent = Auth.user;
-let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
 
-// sidebar collapse
 const sb = document.getElementById('sidebar');
 function setCollapsed(c) {
   sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
@@ -93,23 +98,40 @@ document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classLis
 document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
-// health
 fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
   document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
-  document.getElementById('stModel').textContent = (j.model || '-') + ' / ' + (j.device || '-');
 }).catch(() => document.getElementById('health').textContent = 'backend unreachable');
 
-function pushLocal(entry) {
-  localHist.unshift({ at: new Date().toLocaleString(), ...entry });
-  localHist = localHist.slice(0, 50);
-  localStorage.setItem('stt_history', JSON.stringify(localHist));
-  document.getElementById('stJobs').textContent = localHist.length;
-  document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
-}
-document.getElementById('stJobs').textContent = localHist.length;
-if (localHist[0]) document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
+document.getElementById('apiBaseInput').value = Auth.apiBase;
+document.getElementById('saveApiBtn').onclick = () => {
+  const val = document.getElementById('apiBaseInput').value.trim();
+  if (val) localStorage.setItem('apiBase', val);
+  else localStorage.removeItem('apiBase');
+  UI.ok('Pengaturan API disimpan');
+};
 
-// Check admin role to show/hide admin-only menu
+function updateThemeOptionActive() {
+  const isDark = Theme.isDark;
+  const lightBtn = document.getElementById('btnLight');
+  const darkBtn = document.getElementById('btnDark');
+  
+  lightBtn.className = `p-4 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${!isDark ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700'}`;
+  darkBtn.className = `p-4 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${isDark ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700'}`;
+}
+
+document.getElementById('btnLight').onclick = () => {
+  localStorage.setItem(Theme.KEY, 'light');
+  Theme.apply();
+  updateThemeOptionActive();
+};
+document.getElementById('btnDark').onclick = () => {
+  localStorage.setItem(Theme.KEY, 'dark');
+  Theme.apply();
+  updateThemeOptionActive();
+};
+
+updateThemeOptionActive();
+
 async function checkAdminRole() {
   try {
     const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });

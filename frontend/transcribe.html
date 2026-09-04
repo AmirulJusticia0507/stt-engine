@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transcribe — STT Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/theme.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<div class="flex min-h-screen">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+    <div class="flex items-center justify-between px-4 py-4">
+      <span id="brand" class="font-bold text-lg">🎙️ STT Engine</span>
+      <button id="collapseBtn" class="bg-slate-800 rounded-lg px-2 py-1 text-sm" title="Collapse">⇔</button>
+    </div>
+    <nav class="px-2 space-y-1 text-sm">
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
+      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">🎤 <span class="lbl">Transcribe</span></a>
+      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
+      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
+      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
+      <a href="settings.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
+      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+    </nav>
+    <div class="flex-1"></div>
+    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- HEADER -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
+      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
+      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Transcribe</h1>
+      <div class="flex-1"></div>
+      <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
+      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+      <!-- UPLOAD FILE (REST) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
+        <h2 class="font-semibold text-slate-900 dark:text-white mb-3">Upload file (REST)</h2>
+        <div class="flex flex-col sm:flex-row gap-2 items-center">
+          <input id="file" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" class="w-full sm:w-auto text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300 hover:file:bg-indigo-100" />
+          <select id="lang" class="w-full sm:w-auto border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"><option value="id">id</option><option value="en">en</option></select>
+          <button id="upBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Transcribe</button>
+          <button id="batchBtn" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2 hidden shadow-sm transition">Batch (max 20)</button>
+        </div>
+        <pre id="restOut" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
+      </div>
+
+      <!-- MIC STREAMING (WS) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-4 transition">
+        <h2 class="font-semibold text-slate-900 dark:text-white mb-3">Mic streaming (WS → PCM 16kHz)</h2>
+        <div class="flex flex-col sm:flex-row gap-2 items-center">
+          <button id="micOn" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Mulai Mic</button>
+          <button id="micOff" class="w-full sm:w-auto border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm rounded-lg px-4 py-2 transition disabled:opacity-50" disabled>Stop</button>
+          <span id="wsStat" class="text-xs text-slate-500 dark:text-slate-400">idle</span>
+        </div>
+        <pre id="wsOut" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
+  </div>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+if (!Auth.requireAuth()) throw new Error('redirect');
+document.getElementById('who').textContent = Auth.user;
+document.getElementById('footUser').textContent = Auth.user;
+let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
+
+// sidebar collapse
+const sb = document.getElementById('sidebar');
+function setCollapsed(c) {
+  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
+  document.getElementById('brand').textContent = c ? '🎙️' : '🎙️ STT Engine';
+  localStorage.setItem('sb_collapsed', c ? '1' : '0');
+}
+document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
+document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
+if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
+
+// health
+fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
+  document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
+}).catch(() => document.getElementById('health').textContent = 'backend unreachable');
+
+function pushLocal(entry) {
+  localHist.unshift({ at: new Date().toLocaleString(), ...entry });
+  localHist = localHist.slice(0, 50);
+  localStorage.setItem('stt_history', JSON.stringify(localHist));
+}
+
+// Check admin role to show/hide admin-only menu
+async function checkAdminRole() {
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
+    if (r.ok) {
+      const j = await r.json();
+      const isAdmin = j.username === 'admin' || j.role === 'admin';
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin));
+    }
+  } catch {}
+}
+checkAdminRole();
+
+// upload
+document.getElementById('upBtn').onclick = async () => {
+  const f = document.getElementById('file').files[0];
+  if (!f) return UI.err('Pilih file dulu');
+  const lang = document.getElementById('lang').value;
+  const fd = new FormData(); fd.append('file', f);
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/transcribe?language=${lang}`, { method: 'POST', headers: Auth.headers(), body: fd });
+    const j = await r.json(); Swal.close();
+    const out = document.getElementById('restOut'); out.classList.remove('hidden'); out.textContent = JSON.stringify(j, null, 2);
+    if (j?.data?.text) { pushLocal({ source: 'upload:' + f.name, lang, text: j.data.text.slice(0, 200) }); UI.ok('Transkripsi selesai'); }
+    else if (!r.ok) UI.err(j.detail || 'Gagal');
+  } catch (e) { Swal.close(); UI.err(e.message); }
+};
+
+// mic WS
+let ws = null, audioCtx = null, source = null, proc = null, micStream = null;
+document.getElementById('micOn').onclick = async () => {
+  const lang = document.getElementById('lang').value;
+  try { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { return UI.err('Izin mic ditolak'); }
+  ws = new WebSocket(Auth.apiBase.replace('http', 'ws') + `/ws/v1/transcribe-stream?language=${lang}&token=${encodeURIComponent(Auth.token)}`);
+  const stat = document.getElementById('wsStat'), out = document.getElementById('wsOut');
+  out.classList.remove('hidden'); out.textContent = '';
+  ws.onopen = () => stat.textContent = 'ws open';
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data); wsCount++;
+    if (msg.event === 'transcript' && msg.data?.text) {
+      out.textContent += msg.data.text + '\n';
+      pushLocal({ source: 'mic-stream', lang, text: msg.data.text.slice(0, 200) });
+    }
+  };
+  ws.onerror = () => stat.textContent = 'ws error';
+  ws.onclose = () => stat.textContent = 'ws closed';
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  source = audioCtx.createMediaStreamSource(micStream);
+  proc = audioCtx.createScriptProcessor(4096, 1, 1);
+  proc.onaudioprocess = (e) => {
+    if (!ws || ws.readyState !== 1) return;
+    const f32 = e.inputBuffer.getChannelData(0);
+    const pcm = new Int16Array(f32.length);
+    for (let i = 0; i < f32.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, f32[i] * 32768));
+    ws.send(pcm.buffer);
+  };
+  source.connect(proc); proc.connect(audioCtx.destination);
+  document.getElementById('micOn').disabled = true; document.getElementById('micOff').disabled = false;
+  stat.textContent = 'mic on';
+};
+document.getElementById('micOff').onclick = () => {
+  try { proc?.disconnect(); source?.disconnect(); audioCtx?.close(); } catch {}
+  micStream?.getTracks().forEach(t => t.stop());
+  try { ws?.close(); } catch {}
+  document.getElementById('micOn').disabled = false; document.getElementById('micOff').disabled = true;
+  document.getElementById('wsStat').textContent = 'idle';
+};
+</script>
+</body>
+</html>

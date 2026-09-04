@@ -3,24 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard — STT Engine</title>
+  <title>Log Audit — STT Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
 <div class="flex min-h-screen">
-  <!-- SIDEBAR -->
   <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
     <div class="flex items-center justify-between px-4 py-4">
       <span id="brand" class="font-bold text-lg">🎙️ STT Engine</span>
       <button id="collapseBtn" class="bg-slate-800 rounded-lg px-2 py-1 text-sm" title="Collapse">⇔</button>
     </div>
     <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
       <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
       <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
-      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
+      <a href="audit.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📋 <span class="lbl">Audit Log</span></a>
       <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
       <a href="settings.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
       <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
@@ -29,12 +28,10 @@
     <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
   </aside>
 
-  <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0">
-    <!-- HEADER -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
       <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Dashboard</h1>
+      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Log Audit</h1>
       <div class="flex-1"></div>
       <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
       <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
@@ -44,32 +41,20 @@
       <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
     </header>
 
-    <!-- CONTENT -->
     <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
-      <!-- DASHBOARD OVERVIEW -->
-      <section>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stJobs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Transkripsi</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stWs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Event WebSocket</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stModel" class="text-lg font-bold text-slate-900 dark:text-white">-</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Model / Device</div>
-          </div>
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
+        <div class="flex items-center gap-2 mb-3">
+          <h2 class="font-semibold text-slate-900 dark:text-white">Log Audit</h2>
+          <div class="flex-1"></div>
+          <button id="auditBtn" class="text-sm border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg px-3 py-1.5 transition">Muat ulang</button>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-4 transition">
-          <b class="text-slate-900 dark:text-white">Aktivitas terakhir</b>
-          <pre id="activity" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-2 text-xs overflow-auto">Belum ada aktivitas.</pre>
-        </div>
-      </section>
+        <div class="overflow-auto"><table class="w-full text-sm text-slate-800 dark:text-slate-200">
+          <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800"><th class="py-2">Waktu</th><th>Aksi</th><th>Detail</th></tr></thead>
+          <tbody id="auditBody"></tbody>
+        </table></div>
+      </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
   </div>
 </div>
@@ -79,9 +64,7 @@
 if (!Auth.requireAuth()) throw new Error('redirect');
 document.getElementById('who').textContent = Auth.user;
 document.getElementById('footUser').textContent = Auth.user;
-let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
 
-// sidebar collapse
 const sb = document.getElementById('sidebar');
 function setCollapsed(c) {
   sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
@@ -93,23 +76,23 @@ document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classLis
 document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
-// health
 fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
   document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
-  document.getElementById('stModel').textContent = (j.model || '-') + ' / ' + (j.device || '-');
 }).catch(() => document.getElementById('health').textContent = 'backend unreachable');
 
-function pushLocal(entry) {
-  localHist.unshift({ at: new Date().toLocaleString(), ...entry });
-  localHist = localHist.slice(0, 50);
-  localStorage.setItem('stt_history', JSON.stringify(localHist));
-  document.getElementById('stJobs').textContent = localHist.length;
-  document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
+async function loadAudit() {
+  const body = document.getElementById('auditBody');
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/audit/log?limit=50', { headers: Auth.headers() });
+    const j = await r.json();
+    const rows = j.data || [];
+    body.innerHTML = rows.map(l => `<tr class="border-t border-slate-200 dark:border-slate-800/80"><td class="py-2 text-slate-600 dark:text-slate-400">${l.at || ''}</td><td class="font-medium text-slate-800 dark:text-slate-200">${l.action || ''}</td><td class="text-slate-600 dark:text-slate-300">${l.detail || ''}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="3">Belum ada log.</td></tr>';
+  } catch {}
 }
-document.getElementById('stJobs').textContent = localHist.length;
-if (localHist[0]) document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
+document.getElementById('auditBtn').onclick = loadAudit;
 
-// Check admin role to show/hide admin-only menu
+loadAudit();
+
 async function checkAdminRole() {
   try {
     const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
