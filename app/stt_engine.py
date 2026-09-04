@@ -63,6 +63,30 @@ class SpeechToTextEngine:
             "loaded": self._model is not None,
         }
 
+    def switch_model(self, model_size: str):
+        """Ganti model saat runtime; model lama di-unload, yang baru lazy-load."""
+        allowed = {"tiny", "base", "small", "medium", "large-v3", "large-v3-turbo"}
+        if model_size not in allowed:
+            raise ValueError(f"Model harus salah satu: {sorted(allowed)}")
+        self.model_size = model_size
+        old, self._model = self._model, None
+        try:
+            if old is not None:
+                del old
+        except Exception:
+            pass
+        try:
+            import gc
+
+            gc.collect()
+            import torch
+
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
+        return self.status
+
     def transcribe_file(self, audio_path: str | Path, language: str = "id") -> dict:
         from app.utils import normalize_to_wav_16k
 

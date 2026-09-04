@@ -18,6 +18,7 @@ from app.auth import (
     ensure_admin,
     export_history,
     get_history,
+    is_postgres as auth_db_is_postgres,
     list_history,
     make_token,
     parse_token,
@@ -105,6 +106,55 @@ def me(user: str | None = Depends(current_user)):
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
     return {"username": user}
+
+
+def system_info() -> dict:
+    import shutil
+
+    info: dict = {**stt_service.status}
+    try:
+        import torch
+
+        info["torch"] = torch.__version__
+        info["cuda_available"] = torch.cuda.is_available()
+        if torch.cuda.is_available():
+            info["gpu_name"] = torch.cuda.get_device_name(0)
+            free, total = torch.cuda.mem_get_info(0)
+            info["vram_free_mb"] = round(free / 1024**2)
+            info["vram_total_mb"] = round(total / 1024**2)
+    except ImportError:
+        info["torch"] = None
+        info["cuda_available"] = False
+    try:
+        import faster_whisper
+
+        info["faster_whisper"] = faster_whisper.__version__
+    except Exception:
+        info["faster_whisper"] = None
+    info["ffmpeg"] = shutil.which("ffmpeg") is not None
+    info["db"] = "postgres" if auth_db_is_postgres() else "sqlite"
+    return info
+
+
+@app.get("/api/v1/system")
+def system(user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"status": "success", "data": system_info()}
+
+
+class ModelIn(BaseModel):
+    model: str
+
+
+@app.post("/api/v1/system/model")
+def set_model(body: ModelIn, user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    try:
+        return {"status": "success", "data": stt_service.switch_model(body.model)}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/v1/history")
