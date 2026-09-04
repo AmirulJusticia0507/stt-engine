@@ -1,0 +1,17 @@
+[ Client (Web/Mobile) ]
+         │
+         ▼  (Chunked Audio via WebSocket)
+┌──────────────────────────────────────────────────┐
+│ FastAPI Gateway                                  │
+│   ├── Audio Buffer & Resampling (16kHz Mono)     │
+│   └── Silero VAD (Filter Keheningan)             │
+└────────────────────────┬─────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────┐
+│ Faster-Whisper Inference Engine                  │
+│   └── Model: Whisper Large-v3-Turbo (FP16/INT8)  │
+└────────────────────────┬─────────────────────────┘
+                         │
+                         ▼  (Text Token Output)
+[ Response Back to Client ]
