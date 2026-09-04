@@ -1,36 +1,103 @@
-"""Auth JWT + user store + history (sqlite, stdlib only kecuali PyJWT)."""
+"""Auth JWT + user/history store di atas SQLAlchemy dual-DB.
+
+- Default (testing/lokal): SQLite file via ``DATABASE_URL`` kosong
+  -> ``sqlite:///./data/stt.db`` (nol setup).
+- Data beneran (produksi): set ``DATABASE_URL=postgresql+psycopg://user:pass@host:5432/stt``
+  -> butuh server Postgres + ``pip install -r requirements.txt`` (ada psycopg).
+
+Kompatibel mundur: env lama ``STT_DB=/path/ke.db`` tetap dibaca sebagai SQLite.
+API publik tidak berubah sehingga ``app/main.py`` tidak perlu diubah.
+"""
 from __future__ import annotations
 
 import hashlib
 import hmac
 import os
 import secrets
-import sqlite3
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import jwt
+from sqlalchemy import DateTime, Integer, String, Text, create_engine, desc, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 SECRET = os.getenv("JWT_SECRET", "dev-secret-ganti-di-produksi")
 ALGO = "HS256"
 EXP_HOURS = int(os.getenv("JWT_EXP_HOURS", "12"))
+RESET_EXP_SEC = 30 * 60
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = Path(os.getenv("STT_DB", str(BASE_DIR / "data" / "stt.db")))
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
-def _db() -> sqlite3.Connection:
-    con = sqlite3.connect(str(DB_PATH))
-    con.row_factory = sqlite3.Row
-    con.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS users(username TEXT PRIMARY KEY, salt TEXT, pwdhash TEXT);
-        CREATE TABLE IF NOT EXISTS history(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, at TEXT, source TEXT, lang TEXT, text TEXT);
-        CREATE TABLE IF NOT EXISTS resets(token TEXT PRIMARY KEY, username TEXT, exp INTEGER);
-        """
-    )
-    return con
+def database_url() -> str:
+    url = os.getenv("DATABASE_URL", "").strip()
+    if url:
+        return url
+    legacy = os.getenv("STT_DB", "").strip()
+    if legacy and not legacy.startswith("sqlite"):
+        return f"sqlite:///{legacy}"
+    path = Path(legacy) if legacy else BASE_DIR / "data" / "stt.db"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return f"sqlite:///{path}"
+
+
+def is_postgres(url: str = "") -> bool:
+    return (url or database_url()).startswith("postgresql")
+
+
+_engine = None
+
+
+def get_engine():
+    global _engine
+    if _engine is None:
+        url = database_url()
+        kwargs: dict = {"pool_pre_ping": True}
+        if url.startswith("sqlite"):
+            kwargs["connect_args"] = {"check_same_thread": False}
+        _engine = create_engine(url, **kwargs)
+        Base.metadata.create_all(_engine)
+    return _engine
+
+
+def reset_engine():  # dipakai saat DATABASE_URL berubah (mis. tes)
+    global _engine
+    if _engine is not None:
+        _engine.dispose()
+    _engine = None
+
+
+def _session() -> Session:
+    return sessionmaker(bind=get_engine(), expire_on_commit=False)()
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+    username: Mapped[str] = mapped_column(String(150), primary_key=True)
+    salt: Mapped[str] = mapped_column(String(64))
+    pwdhash: Mapped[str] = mapped_column(String(128))
+
+
+class History(Base):
+    __tablename__ = "history"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(150), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    source: Mapped[str] = mapped_column(String(255), default="")
+    lang: Mapped[str] = mapped_column(String(16), default="id")
+    text: Mapped[str] = mapped_column(Text, default="")
+
+
+class ResetToken(Base):
+    __tablename__ = "resets"
+    token: Mapped[str] = mapped_column(String(128), primary_key=True)
+    username: Mapped[str] = mapped_column(String(150), index=True)
+    exp: Mapped[int] = mapped_column(Integer)
 
 
 def _hash(password: str, salt: str) -> str:
@@ -40,25 +107,29 @@ def _hash(password: str, salt: str) -> str:
 def ensure_admin():
     user = os.getenv("ADMIN_USER", "admin")
     pwd = os.getenv("ADMIN_PASS", "admin")
-    con = _db()
-    row = con.execute("SELECT username FROM users WHERE username=?", (user,)).fetchone()
-    if row is None:
-        salt = secrets.token_hex(16)
-        con.execute(
-            "INSERT INTO users(username, salt, pwdhash) VALUES(?,?,?)",
-            (user, salt, _hash(pwd, salt)),
-        )
-        con.commit()
-    con.close()
+    with _session() as s:
+        if s.get(User, user) is None:
+            salt = secrets.token_hex(16)
+            s.add(User(username=user, salt=salt, pwdhash=_hash(pwd, salt)))
+            s.commit()
 
 
 def verify_user(username: str, password: str) -> bool:
-    con = _db()
-    row = con.execute("SELECT salt, pwdhash FROM users WHERE username=?", (username,)).fetchone()
-    con.close()
-    if row is None:
-        return False
-    return hmac.compare_digest(_hash(password, row["salt"]), row["pwdhash"])
+    with _session() as s:
+        row = s.get(User, username)
+        if row is None:
+            return False
+        return hmac.compare_digest(_hash(password, row.salt), row.pwdhash)
+
+
+def set_password(username: str, password: str):
+    with _session() as s:
+        row = s.get(User, username)
+        if row is None:
+            return
+        row.salt = secrets.token_hex(16)
+        row.pwdhash = _hash(password, row.salt)
+        s.commit()
 
 
 def make_token(username: str) -> str:
@@ -73,64 +144,46 @@ def parse_token(token: str) -> str | None:
         return None
 
 
-def set_password(username: str, password: str):
-    con = _db()
-    salt = secrets.token_hex(16)
-    con.execute(
-        "UPDATE users SET salt=?, pwdhash=? WHERE username=?",
-        (salt, _hash(password, salt), username),
-    )
-    con.commit()
-    con.close()
-
-
-RESET_EXP_SEC = 30 * 60
-
-
 def create_reset_token(username: str) -> str | None:
-    con = _db()
-    if con.execute("SELECT username FROM users WHERE username=?", (username,)).fetchone() is None:
-        con.close()
-        return None
-    token = secrets.token_urlsafe(32)
-    con.execute(
-        "INSERT OR REPLACE INTO resets(token, username, exp) VALUES(?,?,?)",
-        (token, username, int(time.time()) + RESET_EXP_SEC),
-    )
-    con.commit()
-    con.close()
-    return token
+    with _session() as s:
+        if s.get(User, username) is None:
+            return None
+        token = secrets.token_urlsafe(32)
+        s.merge(ResetToken(token=token, username=username, exp=int(time.time()) + RESET_EXP_SEC))
+        s.commit()
+        return token
 
 
 def consume_reset_token(token: str, new_password: str) -> str | None:
-    con = _db()
-    row = con.execute("SELECT username, exp FROM resets WHERE token=?", (token,)).fetchone()
-    if row is None or row["exp"] < int(time.time()):
-        con.close()
-        return None
-    username = row["username"]
-    con.execute("DELETE FROM resets WHERE token=?", (token,))
-    con.commit()
-    con.close()
+    with _session() as s:
+        row = s.get(ResetToken, token)
+        if row is None or row.exp < int(time.time()):
+            return None
+        username = row.username
+        s.delete(row)
+        s.commit()
     set_password(username, new_password)
     return username
 
 
 def save_history(username: str, source: str, lang: str, text: str):
-    con = _db()
-    con.execute(
-        "INSERT INTO history(username, at, source, lang, text) VALUES(datetime('now'),?,?,?,?)",
-        (username, source, lang, text[:2000]),
-    )
-    con.commit()
-    con.close()
+    with _session() as s:
+        s.add(History(username=username, source=source, lang=lang, text=text[:2000]))
+        s.commit()
 
 
 def list_history(username: str, limit: int = 50) -> list[dict]:
-    con = _db()
-    rows = con.execute(
-        "SELECT at, source, lang, text FROM history WHERE username=? ORDER BY id DESC LIMIT ?",
-        (username, limit),
-    ).fetchall()
-    con.close()
-    return [dict(r) for r in rows]
+    with _session() as s:
+        rows = s.execute(
+            select(History).where(History.username == username).order_by(desc(History.id)).limit(limit)
+        ).scalars().all()
+        out = []
+        for r in rows:
+            at = r.at
+            out.append({
+                "at": at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(at, "strftime") else str(at),
+                "source": r.source,
+                "lang": r.lang,
+                "text": r.text,
+            })
+        return out
