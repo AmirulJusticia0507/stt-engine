@@ -178,36 +178,62 @@ def export_item(item_id: int, format: str = "txt", user: str | None = Depends(cu
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
+ALLOWED_AUDIO = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm")
+
+
+def _transcribe_bytes(filename: str, raw: bytes, language: str, user: str | None, source_prefix: str = "upload") -> dict:
+    suffix = Path(filename or "audio.wav").suffix or ".wav"
+    if suffix.lower() not in ALLOWED_AUDIO:
+        return {"filename": filename, "status": "error", "detail": f"Format {suffix} tidak didukung"}
+    if not raw:
+        return {"filename": filename, "status": "error", "detail": "File kosong"}
+    tmp = save_upload_to_temp(raw, suffix)
+    try:
+        result = stt_service.transcribe_file(tmp, language=language)
+        if user and result.get("text"):
+            try:
+                save_history(user, f"{source_prefix}:{filename}", language, result["text"], result)
+            except Exception:
+                pass
+        return {"filename": filename, "status": "success", "data": result}
+    except RuntimeError as e:
+        return {"filename": filename, "status": "error", "detail": str(e)}
+    except Exception as e:
+        logger.exception("transcribe failed")
+        return {"filename": filename, "status": "error", "detail": str(e)}
+    finally:
+        tmp.unlink(missing_ok=True)
+        tmp.with_suffix(".16k.wav").unlink(missing_ok=True)
+
+
 @app.post("/api/v1/transcribe")
 async def transcribe_audio(
     file: UploadFile = File(...),
     language: str = "id",
     user: str | None = Depends(current_user),
 ):
-    suffix = Path(file.filename or "audio.wav").suffix or ".wav"
-    if suffix.lower() not in (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm"):
-        raise HTTPException(status_code=400, detail=f"Format {suffix} tidak didukung")
     raw = await file.read()
-    if not raw:
-        raise HTTPException(status_code=400, detail="File kosong")
-    tmp = save_upload_to_temp(raw, suffix)
-    try:
-        result = stt_service.transcribe_file(tmp, language=language)
-        if user and result.get("text"):
-            try:
-                save_history(user, f"upload:{file.filename}", language, result["text"], result)
-            except Exception:
-                pass
-        return {"status": "success", "data": result}
-    except RuntimeError as e:  # mis. faster-whisper belum install
-        raise HTTPException(status_code=503, detail=str(e))
-    except Exception as e:
-        logger.exception("transcribe failed")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        tmp.unlink(missing_ok=True)
-        conv = tmp.with_suffix(".16k.wav")
-        conv.unlink(missing_ok=True)
+    out = _transcribe_bytes(file.filename or "audio.wav", raw, language, user)
+    if out["status"] == "error":
+        code = 503 if "belum terinstall" in out.get("detail", "") else 400
+        raise HTTPException(status_code=code, detail=out["detail"])
+    return {"status": "success", "data": out["data"]}
+
+
+@app.post("/api/v1/transcribe-batch")
+async def transcribe_batch(
+    files: list[UploadFile] = File(...),
+    language: str = "id",
+    user: str | None = Depends(current_user),
+):
+    if len(files) > 20:
+        raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
+    results = []
+    for f in files:
+        raw = await f.read()
+        results.append(_transcribe_bytes(f.filename or "audio.wav", raw, language, user, "batch"))
+    ok = sum(1 for r in results if r["status"] == "success")
+    return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results}
 
 
 @app.websocket("/ws/v1/transcribe-stream")
