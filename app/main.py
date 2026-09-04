@@ -12,7 +12,16 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.auth import ensure_admin, list_history, make_token, parse_token, save_history, verify_user
+from app.auth import (
+    consume_reset_token,
+    create_reset_token,
+    ensure_admin,
+    list_history,
+    make_token,
+    parse_token,
+    save_history,
+    verify_user,
+)
 from app.stt_engine import stt_service
 from app.utils import normalize_to_wav_16k, save_upload_to_temp
 
@@ -29,6 +38,15 @@ def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer)) -
 class LoginIn(BaseModel):
     username: str
     password: str
+
+
+class ForgotIn(BaseModel):
+    username: str
+
+
+class ResetIn(BaseModel):
+    token: str
+    new_password: str
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("stt-engine")
@@ -61,6 +79,23 @@ def login(body: LoginIn):
     if not verify_user(body.username, body.password):
         raise HTTPException(status_code=401, detail="Kredensial salah")
     return {"access_token": make_token(body.username), "token_type": "bearer"}
+
+
+@app.post("/api/v1/auth/forgot")
+def forgot(body: ForgotIn):
+    # Selalu return success agar tidak bocor enumerasi user; token dikembalikan di dev.
+    token = create_reset_token(body.username)
+    return {"status": "success", "reset_token": token}
+
+
+@app.post("/api/v1/auth/reset")
+def reset(body: ResetIn):
+    if len(body.new_password) < 4:
+        raise HTTPException(status_code=400, detail="Password minimal 4 karakter")
+    user = consume_reset_token(body.token, body.new_password)
+    if user is None:
+        raise HTTPException(status_code=400, detail="Token reset tidak valid / kedaluwarsa")
+    return {"status": "success", "username": user}
 
 
 @app.get("/api/v1/me")

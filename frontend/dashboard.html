@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — STT Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="bg-slate-900 text-slate-200 w-64 transition-all duration-200 flex flex-col">
+    <div class="flex items-center justify-between px-4 py-4">
+      <span id="brand" class="font-bold text-lg">🎙️ STT Engine</span>
+      <button id="collapseBtn" class="bg-slate-800 rounded-lg px-2 py-1 text-sm" title="Collapse">⇔</button>
+    </div>
+    <nav class="px-2 space-y-1 text-sm">
+      <a href="#" data-view="dashboard" class="nav block px-3 py-2 rounded-lg bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
+      <a href="#" data-view="transcribe" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
+      <a href="#" data-view="history" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
+      <a href="#" data-view="settings" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
+    </nav>
+    <div class="flex-1"></div>
+    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- HEADER -->
+    <header class="bg-white shadow px-4 py-3 flex items-center gap-3">
+      <button id="mobileBtn" class="md:hidden border rounded-lg px-2 py-1">☰</button>
+      <h1 id="title" class="font-semibold text-slate-800">Dashboard</h1>
+      <div class="flex-1"></div>
+      <span id="health" class="text-xs text-slate-500 hidden md:block"></span>
+      <button id="logoutBtn" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+      <!-- DASHBOARD -->
+      <section id="v-dashboard">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl shadow p-5"><div id="stJobs" class="text-3xl font-bold">0</div><div class="text-sm text-slate-500">Transkripsi</div></div>
+          <div class="bg-white rounded-2xl shadow p-5"><div id="stWs" class="text-3xl font-bold">0</div><div class="text-sm text-slate-500">Event WebSocket</div></div>
+          <div class="bg-white rounded-2xl shadow p-5"><div id="stModel" class="text-lg font-bold">-</div><div class="text-sm text-slate-500">Model / Device</div></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5 mt-4">
+          <b>Aktivitas terakhir</b>
+          <pre id="activity" class="bg-slate-50 rounded-lg p-3 mt-2 text-xs overflow-auto">Belum ada aktivitas.</pre>
+        </div>
+      </section>
+
+      <!-- TRANSCRIBE -->
+      <section id="v-transcribe" class="hidden">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="font-semibold mb-3">Upload file (REST)</h2>
+          <div class="flex flex-wrap gap-2 items-center">
+            <input id="file" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" class="text-sm" />
+            <select id="lang" class="border rounded-lg px-2 py-1.5 text-sm"><option value="id">id</option><option value="en">en</option></select>
+            <button id="upBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2">Transcribe</button>
+          </div>
+          <pre id="restOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5 mt-4">
+          <h2 class="font-semibold mb-3">Mic streaming (WS → PCM 16kHz)</h2>
+          <div class="flex gap-2 items-center">
+            <button id="micOn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg px-4 py-2">Mulai Mic</button>
+            <button id="micOff" class="border text-sm rounded-lg px-4 py-2" disabled>Stop</button>
+            <span id="wsStat" class="text-xs text-slate-500">idle</span>
+          </div>
+          <pre id="wsOut" class="bg-slate-50 rounded-lg p-3 mt-3 text-xs overflow-auto hidden"></pre>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section id="v-history" class="hidden">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <h2 class="font-semibold">Riwayat</h2>
+            <div class="flex-1"></div>
+            <button id="histBtn" class="text-sm border rounded-lg px-3 py-1.5">Muat ulang</button>
+          </div>
+          <div class="overflow-auto"><table class="w-full text-sm">
+            <thead><tr class="text-left text-slate-500"><th class="py-2">Waktu</th><th>Sumber</th><th>Bhs</th><th>Teks</th></tr></thead>
+            <tbody id="histBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="v-settings" class="hidden">
+        <div class="bg-white rounded-2xl shadow p-5 space-y-3">
+          <h2 class="font-semibold">Pengaturan</h2>
+          <div><label class="text-sm">API Base</label><input id="apiBase" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" /></div>
+          <div><label class="text-sm">Bahasa default</label>
+            <select id="defLang" class="mt-1 border rounded-lg px-3 py-2 text-sm"><option value="id">id</option><option value="en">en</option></select>
+          </div>
+          <button id="saveSet" class="bg-slate-900 text-white text-sm rounded-lg px-4 py-2">Simpan</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-slate-400 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
+  </div>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+if (!Auth.requireAuth()) throw new Error('redirect');
+document.getElementById('who').textContent = Auth.user;
+document.getElementById('footUser').textContent = Auth.user;
+let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
+
+// sidebar collapse
+const sb = document.getElementById('sidebar');
+function setCollapsed(c) {
+  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
+  document.getElementById('brand').textContent = c ? '🎙️' : '🎙️ STT Engine';
+  localStorage.setItem('sb_collapsed', c ? '1' : '0');
+}
+document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
+document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
+if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
+
+// nav
+const titles = { dashboard: 'Dashboard', transcribe: 'Transcribe', history: 'Riwayat', settings: 'Pengaturan' };
+document.querySelectorAll('.nav').forEach(a => a.onclick = (e) => {
+  e.preventDefault();
+  document.querySelectorAll('.nav').forEach(x => x.classList.remove('bg-slate-800'));
+  a.classList.add('bg-slate-800');
+  ['dashboard','transcribe','history','settings'].forEach(v => document.getElementById('v-'+v).classList.add('hidden'));
+  document.getElementById('v-'+a.dataset.view).classList.remove('hidden');
+  document.getElementById('title').textContent = titles[a.dataset.view];
+  if (a.dataset.view === 'history') loadHistory();
+});
+document.getElementById('logoutBtn').onclick = async () => { if (await UI.confirm('Keluar dari dashboard?')) Auth.logout(); };
+
+// health
+fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
+  document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
+  document.getElementById('stModel').textContent = (j.model || '-') + ' / ' + (j.device || '-');
+}).catch(() => document.getElementById('health').textContent = 'backend unreachable');
+
+function pushLocal(entry) {
+  localHist.unshift({ at: new Date().toLocaleString(), ...entry });
+  localHist = localHist.slice(0, 50);
+  localStorage.setItem('stt_history', JSON.stringify(localHist));
+  document.getElementById('stJobs').textContent = localHist.length;
+  document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
+}
+document.getElementById('stJobs').textContent = localHist.length;
+if (localHist[0]) document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
+
+// upload
+document.getElementById('upBtn').onclick = async () => {
+  const f = document.getElementById('file').files[0];
+  if (!f) return UI.err('Pilih file dulu');
+  const lang = document.getElementById('lang').value;
+  const fd = new FormData(); fd.append('file', f);
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/transcribe?language=${lang}`, { method: 'POST', headers: Auth.headers(), body: fd });
+    const j = await r.json(); Swal.close();
+    const out = document.getElementById('restOut'); out.classList.remove('hidden'); out.textContent = JSON.stringify(j, null, 2);
+    if (j?.data?.text) { pushLocal({ source: 'upload:' + f.name, lang, text: j.data.text.slice(0, 200) }); UI.ok('Transkripsi selesai'); }
+    else if (!r.ok) UI.err(j.detail || 'Gagal');
+  } catch (e) { Swal.close(); UI.err(e.message); }
+};
+
+// mic WS
+let ws = null, audioCtx = null, source = null, proc = null, micStream = null;
+document.getElementById('micOn').onclick = async () => {
+  const lang = document.getElementById('lang').value;
+  try { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { return UI.err('Izin mic ditolak'); }
+  ws = new WebSocket(Auth.apiBase.replace('http', 'ws') + `/ws/v1/transcribe-stream?language=${lang}&token=${encodeURIComponent(Auth.token)}`);
+  const stat = document.getElementById('wsStat'), out = document.getElementById('wsOut');
+  out.classList.remove('hidden'); out.textContent = '';
+  ws.onopen = () => stat.textContent = 'ws open';
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data); wsCount++;
+    document.getElementById('stWs').textContent = wsCount;
+    if (msg.event === 'transcript' && msg.data?.text) {
+      out.textContent += msg.data.text + '\n';
+      pushLocal({ source: 'mic-stream', lang, text: msg.data.text.slice(0, 200) });
+    }
+  };
+  ws.onerror = () => stat.textContent = 'ws error';
+  ws.onclose = () => stat.textContent = 'ws closed';
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  source = audioCtx.createMediaStreamSource(micStream);
+  proc = audioCtx.createScriptProcessor(4096, 1, 1);
+  proc.onaudioprocess = (e) => {
+    if (!ws || ws.readyState !== 1) return;
+    const f32 = e.inputBuffer.getChannelData(0);
+    const pcm = new Int16Array(f32.length);
+    for (let i = 0; i < f32.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, f32[i] * 32768));
+    ws.send(pcm.buffer);
+  };
+  source.connect(proc); proc.connect(audioCtx.destination);
+  document.getElementById('micOn').disabled = true; document.getElementById('micOff').disabled = false;
+  stat.textContent = 'mic on';
+};
+document.getElementById('micOff').onclick = () => {
+  try { proc?.disconnect(); source?.disconnect(); audioCtx?.close(); } catch {}
+  micStream?.getTracks().forEach(t => t.stop());
+  try { ws?.close(); } catch {}
+  document.getElementById('micOn').disabled = false; document.getElementById('micOff').disabled = true;
+  document.getElementById('wsStat').textContent = 'idle';
+};
+
+// history
+async function loadHistory() {
+  const body = document.getElementById('histBody');
+  let rows = [...localHist];
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/history', { headers: Auth.headers() });
+    if (r.ok) { const j = await r.json(); if (Array.isArray(j.data)) rows = [...j.data, ...localHist].slice(0, 50); }
+  } catch {}
+  body.innerHTML = rows.map(h => `<tr class="border-t"><td class="py-2">${h.at || ''}</td><td>${h.source || ''}</td><td>${h.lang || ''}</td><td>${(h.text || '').slice(0, 120)}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400">Belum ada riwayat.</td></tr>';
+}
+document.getElementById('histBtn').onclick = loadHistory;
+
+// settings
+document.getElementById('apiBase').value = Auth.apiBase;
+document.getElementById('defLang').value = localStorage.getItem('stt_lang') || 'id';
+document.getElementById('saveSet').onclick = () => {
+  localStorage.setItem('apiBase', document.getElementById('apiBase').value.trim() || location.origin);
+  localStorage.setItem('stt_lang', document.getElementById('defLang').value);
+  document.getElementById('lang').value = document.getElementById('defLang').value;
+  UI.ok('Pengaturan disimpan');
+};
+</script>
+</body>
+</html>

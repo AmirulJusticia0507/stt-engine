@@ -27,6 +27,7 @@ def _db() -> sqlite3.Connection:
         """
         CREATE TABLE IF NOT EXISTS users(username TEXT PRIMARY KEY, salt TEXT, pwdhash TEXT);
         CREATE TABLE IF NOT EXISTS history(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, at TEXT, source TEXT, lang TEXT, text TEXT);
+        CREATE TABLE IF NOT EXISTS resets(token TEXT PRIMARY KEY, username TEXT, exp INTEGER);
         """
     )
     return con
@@ -70,6 +71,49 @@ def parse_token(token: str) -> str | None:
         return jwt.decode(token, SECRET, algorithms=[ALGO]).get("sub")
     except Exception:
         return None
+
+
+def set_password(username: str, password: str):
+    con = _db()
+    salt = secrets.token_hex(16)
+    con.execute(
+        "UPDATE users SET salt=?, pwdhash=? WHERE username=?",
+        (salt, _hash(password, salt), username),
+    )
+    con.commit()
+    con.close()
+
+
+RESET_EXP_SEC = 30 * 60
+
+
+def create_reset_token(username: str) -> str | None:
+    con = _db()
+    if con.execute("SELECT username FROM users WHERE username=?", (username,)).fetchone() is None:
+        con.close()
+        return None
+    token = secrets.token_urlsafe(32)
+    con.execute(
+        "INSERT OR REPLACE INTO resets(token, username, exp) VALUES(?,?,?)",
+        (token, username, int(time.time()) + RESET_EXP_SEC),
+    )
+    con.commit()
+    con.close()
+    return token
+
+
+def consume_reset_token(token: str, new_password: str) -> str | None:
+    con = _db()
+    row = con.execute("SELECT username, exp FROM resets WHERE token=?", (token,)).fetchone()
+    if row is None or row["exp"] < int(time.time()):
+        con.close()
+        return None
+    username = row["username"]
+    con.execute("DELETE FROM resets WHERE token=?", (token,))
+    con.commit()
+    con.close()
+    set_password(username, new_password)
+    return username
 
 
 def save_history(username: str, source: str, lang: str, text: str):
