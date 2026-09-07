@@ -354,8 +354,23 @@ def is_admin_user(username: str) -> bool:
 
 def list_users() -> list[dict]:
     with _session() as s:
-        rows = s.execute(select(User).order_by(User.username)).scalars().all()
-        return [{"username": r.username, "role": r.role} for r in rows]
+        users = s.execute(select(User).order_by(User.username)).scalars().all()
+        out = []
+        for u in users:
+            sub = s.get(Subscription, u.username)
+            plan = sub.plan if sub else "free"
+            period = sub.period if sub else "monthly"
+            quota = sub.quota_limit if sub else PLANS["free"]["quota"]
+            out.append({
+                "username": u.username,
+                "role": u.role,
+                "plan": plan,
+                "period": period,
+                "credits": u.credits,
+                "quota_used": sub.quota_used if sub else 0,
+                "quota_limit": quota,
+            })
+        return out
 
 
 def create_user(username: str, password: str, role: str = "user") -> bool:

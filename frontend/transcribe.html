@@ -282,6 +282,14 @@ document.getElementById('upBtn').onclick = async () => {
   const f = fileInput.files[0];
   if (!f) return UI.err('Pilih file audio terlebih dahulu');
   const lang = document.getElementById('lang').value;
+  // Cek kuota/credit sebelum submit
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/subscriptions/me`, { headers: Auth.headers() });
+    const sub = await r.json();
+    const limit = sub.quota_limit;
+    const used = sub.quota_used;
+    if (limit !== null && used >= limit) return UI.err(`Kuota paket ${sub.plan} sudah habis. Upgrade di menu Langganan.`);
+  } catch {}
   const fd = new FormData(); fd.append('file', f);
   Swal.showLoading();
   try {
