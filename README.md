@@ -8,6 +8,7 @@
 - [Bab 4 — Frontend](#bab-4--frontend)
 - [Bab 5 — Menjalankan di Laptop GPU](#bab-5--menjalankan-di-laptop-gpu)
 - [Bab 6 — Status Fitur](#bab-6--status-fitur)
+- [Bab 7 — Deploy Vercel (lite-mode)](#bab-7--deploy-vercel-lite-mode)
 
 ---
 
@@ -171,3 +172,47 @@ uvicorn app.main:app --port 8000
 ### ⬜ Belum dikerjakan / belum dibuat
 
 *(semua fitur utama sudah selesai!)*
+
+---
+
+## Bab 7 — Deploy Vercel (lite-mode)
+
+Vercel hanya untuk **frontend + auth + riwayat**. Transcribe penuh butuh mesin
+GPU (lihat Bab 5).
+
+### 7.1 Kenapa lite-mode?
+
+- Limit Vercel: bundle serverless maks **225 MB**. `faster-whisper`
+  (+ `ctranslate2`, `onnxruntime`, `av`) + `torch` + `celery` total ±460 MB.
+- Vercel tanpa GPU dan filesystem read-only (cuma `/tmp` bisa tulis).
+- Maka `requirements-vercel.txt` **sengaja ramping**: tanpa
+  `faster-whisper`, `torch`, `celery`, `redis`; `uvicorn` polos (tanpa
+  `[standard]`). `vercel.json` pakai `installCommand` ke file itu.
+
+### 7.2 Yang jalan / tidak di Vercel
+
+| Jalan | Tidak (HTTP error JSON) |
+|---|---|
+| Login, users, roles, API key, history, audit, ekspor, kredit, `/health`, `/api/v1/system`, semua halaman `*.html` | `POST /transcribe` → error faster-whisper belum terinstall; `/transcribe-async`, `/transcribe-batch-async`, `/jobs/*` → `503` tanpa Redis/Celery |
+
+### 7.3 Env wajib di Vercel dashboard
+
+`JWT_SECRET` (≥32 karakter acak, **jangan kosong** — kosong = login 500
+`HMAC key must not be empty`), `ADMIN_USER`, `ADMIN_PASS`,
+`DATABASE_URL` (kosong → SQLite `/tmp`, hilang tiap cold start/redeploy).
+
+Untuk auth persisten: Postgres gratis (Neon/Supabase) →
+
+```env
+DATABASE_URL=postgresql+psycopg://user:pass@host:5432/stt
+```
+
+`postgres://...` otomatis dinormalisasi ke `postgresql://...`.
+Setelah ubah env: **Redeploy tanpa build cache**.
+
+### 7.4 Arsitektur file
+
+`api/index.py` re-export `app.main:app` + middleware pemulih path
+(`/api/index...` → path asli). `vercel.json` pakai `routes` (`dest`
+`/api/index.py`, path asli diteruskan) — bukan `rewrites`. Frontend
+di-mount di `/` dan `/frontend`, jadi `/login.html` dkk 200.
