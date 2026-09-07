@@ -9,190 +9,445 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+
+    /* Sidebar transition */
+    #sidebar { transition: width 0.25s cubic-bezier(.4,0,.2,1); }
+
+    /* Animated gradient border on stat cards */
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(99,102,241,.35), rgba(168,85,247,.25), rgba(236,72,153,.15));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* Glow on hover */
+    .stat-card:hover .icon-ring {
+      box-shadow: 0 0 16px 4px var(--glow);
+    }
+
+    /* Pulse dot */
+    @keyframes pulse-ring {
+      0%   { transform: scale(.9); opacity: .9; }
+      70%  { transform: scale(1.3); opacity: 0; }
+      100% { transform: scale(.9); opacity: 0; }
+    }
+    .pulse-dot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: currentColor;
+      animation: pulse-ring 1.8s ease-out infinite;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Activity feed line */
+    .activity-line::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 28px;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, #4f46e5, transparent);
+    }
+
+    /* Skeleton shimmer */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 6px;
+    }
+
+    /* Chart area */
+    #chart { min-height: 220px; }
+  </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
+
 <div class="flex min-h-screen">
 
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0">
+
+    <!-- Top glow accent -->
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
+
+    <!-- Brand -->
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
-      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
-        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
-        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      <a href="dashboard.html" class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
+          <img src="assets/logo.png" alt="Logo" class="w-5 h-5 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+          <span style="display:none" class="text-white text-xs font-bold">S</span>
+        </div>
+        <span class="lbl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
       </a>
-      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+      <button id="collapseBtn" class="ml-2 flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition shrink-0" title="Collapse sidebar">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
     </div>
-    <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
-      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
-      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
-      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
-      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="pricing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
-      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
+
+      <p class="lbl px-2 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Menu</p>
+
+      <a href="dashboard.html" class="nav-item active group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/80 text-white shadow-md shadow-indigo-900/40">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="lbl font-medium">Dashboard</span>
+      </a>
+
+      <a href="transcribe.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+        <span class="lbl font-medium">Transcribe</span>
+      </a>
+
+      <a href="model.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+        <span class="lbl font-medium">Model</span>
+      </a>
+
+      <a href="history.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="lbl font-medium">Riwayat</span>
+      </a>
+
+      <a href="audit.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="lbl font-medium">Audit Log</span>
+      </a>
+
+      <div class="lbl pt-3 pb-1">
+        <p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Akun</p>
+      </div>
+
+      <a href="pricing.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span class="lbl font-medium">Langganan</span>
+      </a>
+
+      <a href="settings.html" class="nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl font-medium">Pengaturan</span>
+      </a>
+
+      <a href="users.html" class="admin-only nav-item group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all hidden">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="lbl font-medium">Manajemen User</span>
+      </a>
     </nav>
-    <div class="flex-1"></div>
-    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+
+    <!-- User info -->
+    <div class="border-t border-slate-800/60 p-3">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/50 transition cursor-default">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0" id="avatarInitial">U</div>
+        <div class="lbl min-w-0">
+          <p class="text-xs text-slate-400">Login sebagai</p>
+          <p class="text-sm font-semibold text-white truncate" id="who"></p>
+        </div>
+      </div>
+    </div>
   </aside>
 
-  <!-- MAIN -->
-  <div class="flex-1 flex flex-col min-w-0">
+  <!-- ══════════════ MAIN ══════════════ -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
     <!-- HEADER -->
-    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
-      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Dashboard</h1>
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-5 py-3.5 flex items-center gap-3">
+      <button id="mobileBtn" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <div class="flex flex-col">
+        <h1 class="font-semibold text-slate-800 dark:text-white text-sm leading-tight">Dashboard</h1>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block" id="health">Memuat info sistem...</p>
+      </div>
+
       <div class="flex-1"></div>
-      <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
+
+      <!-- Status badge -->
+      <div id="statusBadge" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-medium">
+        <span class="relative w-1.5 h-1.5">
+          <span class="pulse-dot absolute inset-0 rounded-full bg-emerald-400"></span>
+          <span class="relative block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        </span>
+        Online
+      </div>
+
+      <!-- Theme toggle -->
+      <button onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
         <span class="theme-icon">🌙</span>
         <span class="theme-text hidden sm:inline">Gelap</span>
       </button>
-      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+
+      <!-- Logout -->
+      <button onclick="Auth.logout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-medium transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="hidden sm:inline">Keluar</span>
+      </button>
     </header>
 
     <!-- CONTENT -->
-    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+    <main class="flex-1 overflow-y-auto p-5 md:p-7 space-y-6">
 
-      <!-- STATS CARDS -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
-          <div class="flex items-start">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-lg font-bold text-indigo-600">👥</span>
+      <!-- Welcome banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 text-white shadow-xl shadow-indigo-900/30">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ij48cGF0aCBkPSJNMzYgMzRjMC0xLjEuOS0yIDItMnMyIDAgMiAyLS45IDItMiAyLTItLjktMi0yeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+        <div class="absolute -right-8 -top-8 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+        <div class="absolute -right-4 bottom-0 w-24 h-24 bg-pink-400/20 rounded-full blur-xl"></div>
+        <div class="relative">
+          <p class="text-indigo-200 text-sm font-medium mb-1">Selamat datang kembali 👋</p>
+          <h2 class="text-2xl font-bold mb-0.5" id="welcomeUser">Loading...</h2>
+          <p class="text-indigo-200/80 text-sm" id="stModel">Memuat info model...</p>
+        </div>
+        <a href="transcribe.html" class="absolute right-6 bottom-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-sm font-semibold backdrop-blur-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+          Transcribe Sekarang
+        </a>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Total Users -->
+        <div class="stat-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 hover:shadow-lg dark:hover:shadow-indigo-900/20 transition-all duration-300 cursor-default" style="--glow: #6366f133">
+          <div class="flex items-start justify-between mb-4">
+            <div class="icon-ring w-11 h-11 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/15 flex items-center justify-center transition-all duration-300">
+              <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
-            <div class="ml-3">
-              <p class="text-xs text-slate-500 dark:text-slate-400">Total User</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="dashTotalUsers">0</p>
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">Users</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5" id="dashTotalUsers">
+            <span class="shimmer inline-block w-10 h-6">&nbsp;</span>
+          </p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total pengguna terdaftar</p>
+        </div>
+
+        <!-- Active Users -->
+        <div class="stat-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 hover:shadow-lg dark:hover:shadow-emerald-900/20 transition-all duration-300 cursor-default" style="--glow: #10b98133">
+          <div class="flex items-start justify-between mb-4">
+            <div class="icon-ring w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center transition-all duration-300">
+              <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Aktif</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5" id="dashActiveUsers">
+            <span class="shimmer inline-block w-10 h-6">&nbsp;</span>
+          </p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pengguna aktif</p>
+        </div>
+
+        <!-- Free Plan -->
+        <div class="stat-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 hover:shadow-lg dark:hover:shadow-violet-900/20 transition-all duration-300 cursor-default" style="--glow: #8b5cf633">
+          <div class="flex items-start justify-between mb-4">
+            <div class="icon-ring w-11 h-11 rounded-xl bg-violet-500/10 dark:bg-violet-500/15 flex items-center justify-center transition-all duration-300">
+              <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full">Free</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5" id="dashPlanFree">
+            <span class="shimmer inline-block w-10 h-6">&nbsp;</span>
+          </p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Paket gratis</p>
+        </div>
+
+        <!-- Subscriptions -->
+        <div class="stat-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 hover:shadow-lg dark:hover:shadow-amber-900/20 transition-all duration-300 cursor-default" style="--glow: #f59e0b33">
+          <div class="flex items-start justify-between mb-4">
+            <div class="icon-ring w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 flex items-center justify-center transition-all duration-300">
+              <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">Pro</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5" id="dashSubs">
+            <span class="shimmer inline-block w-10 h-6">&nbsp;</span>
+          </p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Berlangganan aktif</p>
+        </div>
+      </div>
+
+      <!-- CHART + QUICK STATS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <!-- Activity Chart -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900/80 rounded-2xl p-5 border border-slate-200/50 dark:border-slate-800/50">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-slate-900 dark:text-white text-sm">Aktivitas Transkripsi</h3>
+              <p class="text-xs text-slate-400 mt-0.5">7 hari terakhir</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span class="text-xs text-slate-400">Jobs</span>
             </div>
           </div>
+          <div id="chart"></div>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
-          <div class="flex items-start">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-lg font-bold text-emerald-600">🟢</span>
-            </div>
-            <div class="ml-3">
-              <p class="text-xs text-slate-500 dark:text-slate-400">Aktif</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="dashActiveUsers">0</p>
+
+        <!-- System Info -->
+        <div class="bg-white dark:bg-slate-900/80 rounded-2xl p-5 border border-slate-200/50 dark:border-slate-800/50 flex flex-col gap-4">
+          <div>
+            <h3 class="font-semibold text-slate-900 dark:text-white text-sm mb-3">Info Sistem</h3>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+                  Model
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" id="sysModel">—</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                  Device
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" id="sysDevice">—</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                  Backend
+                </div>
+                <span id="sysStatus" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">—</span>
+              </div>
+              <div class="flex items-center justify-between py-2">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                  Total Jobs
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" id="stJobs">0</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
-          <div class="flex items-start">
-            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-lg font-bold text-violet-600">📦</span>
-            </div>
-            <div class="ml-3">
-              <p class="text-xs text-slate-500 dark:text-slate-400">Paket Free</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="dashPlanFree">0</p>
-            </div>
+
+          <!-- Quick actions -->
+          <div class="mt-auto space-y-2">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Aksi Cepat</p>
+            <a href="transcribe.html" class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-md shadow-indigo-900/30">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Transkripsi Baru
+            </a>
+            <a href="history.html" class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Lihat Riwayat
+            </a>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
-          <div class="flex items-start">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-lg font-bold text-indigo-600">💳</span>
+      </div>
+
+      <!-- ACTIVITY FEED -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 class="font-semibold text-slate-900 dark:text-white text-sm">Aktivitas Terakhir</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Job transkripsi terbaru dari sesi ini</p>
+          </div>
+          <a href="history.html" class="text-xs text-indigo-500 hover:text-indigo-400 font-semibold flex items-center gap-1 transition">
+            Lihat semua
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div id="activityFeed" class="divide-y divide-slate-100 dark:divide-slate-800">
+          <!-- Placeholder -->
+          <div class="flex items-start gap-4 px-5 py-4 text-slate-400 dark:text-slate-500">
+            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
             </div>
-            <div class="ml-3">
-              <p class="text-xs text-slate-500 dark:text-slate-400">Langganan</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="dashSubs">0</p>
+            <div>
+              <p class="text-sm font-medium text-slate-400">Belum ada aktivitas</p>
+              <p class="text-xs text-slate-400/70 mt-0.5">Mulai transkripsi pertama Anda</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- DASHBOARD OVERVIEW -->
-      <section>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stJobs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Transkripsi</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stWs" class="text-3xl font-bold text-slate-900 dark:text-white">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Event WebSocket</div>
-          </div>
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-            <div id="stModel" class="text-lg font-bold text-slate-900 dark:text-white">-</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Model / Device</div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 mt-4 transition">
-          <b class="text-slate-900 dark:text-white">Aktivitas terakhir</b>
-          <pre id="activity" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-2 text-xs overflow-auto">Belum ada aktivitas.</pre>
-        </div>
-      </section>
     </main>
+
+    <!-- FOOTER -->
+    <footer class="px-7 py-4 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+      <span>STT Engine · FastAPI + Faster-Whisper</span>
+      <span id="footUser"></span>
+    </footer>
   </div>
 </div>
 
 <script src="assets/auth.js"></script>
 <script>
 if (!Auth.requireAuth()) throw new Error('redirect');
-document.getElementById('who').textContent = Auth.user;
-document.getElementById('footUser').textContent = Auth.user;
-let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
 
-// dashboard stats fetch
-async function loadDashboardStats() {
-  try {
-    // Fetch users count
-    const usersR = await fetch(Auth.apiBase + '/api/v1/users', { headers: Auth.headers() });
-    if (usersR.ok) {
-      const usersJ = await usersR.json();
-      const users = usersJ.users || [];
-      const total = users.length;
-      const active = users.filter(u => u.status === 'active' || (u.role !== 'admin' && u.plan !== 'Free')).length || 0;
-      const free = users.filter(u => u.plan === 'Free').length || 0;
-      const subs = users.filter(u => u.plan && u.plan !== 'Free').length || 0;
-      
-      document.getElementById('dashTotalUsers').textContent = total;
-      document.getElementById('dashActiveUsers').textContent = active;
-      document.getElementById('dashPlanFree').textContent = free;
-      document.getElementById('dashSubs').textContent = subs;
-    }
+// ── Init user info ──────────────────────────────────────────────────────────
+const username = Auth.user;
+document.getElementById('who').textContent = username;
+document.getElementById('footUser').textContent = username;
+document.getElementById('welcomeUser').textContent = username;
 
-    // Fetch billing summary
-    const billingR = await fetch(Auth.apiBase + '/api/v1/billing', { headers: Auth.headers() });
-    if (billingR.ok) {
-      const billingJ = await billingR.json();
-      const payments = billingJ.data || [];
-      let total = 0, activePay = 0, totalQuota = 0;
-      payments.forEach(p => {
-        total += (p.amount || 0);
-        if (p.status === 'success') activePay++;
-        totalQuota += (p.quota_used || 0);
-      });
-      document.getElementById('totalPayments').textContent = formatRupiah(total);
-      document.getElementById('activeSubs').textContent = activePay;
-      document.getElementById('avgQuota').textContent = payments.length > 0 ? Math.round(totalQuota / payments.length) : 0;
-    }
-  } catch (e) { console.error(e); }
-}
+// Avatar initial
+const initial = (username || 'U').charAt(0).toUpperCase();
+document.getElementById('avatarInitial').textContent = initial;
 
-function formatRupiah(angka) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
-}
-
-// sidebar collapse
+// ── Sidebar collapse ────────────────────────────────────────────────────────
 const sb = document.getElementById('sidebar');
 function setCollapsed(c) {
-  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
-  document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
+  sb.classList.toggle('w-64', !c);
+  sb.classList.toggle('w-20', c);
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.classList.toggle('hidden', c));
   localStorage.setItem('sb_collapsed', c ? '1' : '0');
 }
 document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
 document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
-// health
-fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
-  document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
-  document.getElementById('stModel').textContent = (j.model || '-') + ' / ' + (j.device || '-');
-}).catch(() => document.getElementById('health').textContent = 'backend unreachable');
+// ── Health check ────────────────────────────────────────────────────────────
+fetch(Auth.apiBase + '/health')
+  .then(r => r.json())
+  .then(j => {
+    const model = j.model || '—';
+    const device = j.device || '—';
+    document.getElementById('health').textContent = model + ' · ' + device;
+    document.getElementById('stModel').textContent = 'Model: ' + model + ' · Device: ' + device;
+    document.getElementById('sysModel').textContent = model;
+    document.getElementById('sysDevice').textContent = device;
 
-// Check admin role to show/hide admin-only menu
+    const statusEl = document.getElementById('sysStatus');
+    statusEl.textContent = '● Online';
+    statusEl.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500';
+    document.getElementById('statusBadge').classList.remove('hidden');
+  })
+  .catch(() => {
+    document.getElementById('health').textContent = 'Backend unreachable';
+    document.getElementById('stModel').textContent = 'Backend tidak dapat dijangkau';
+    const statusEl = document.getElementById('sysStatus');
+    statusEl.textContent = '● Offline';
+    statusEl.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500';
+  });
+
+// ── Admin check ─────────────────────────────────────────────────────────────
 async function checkAdminRole() {
   try {
     const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
@@ -205,6 +460,157 @@ async function checkAdminRole() {
 }
 checkAdminRole();
 
-// Initialize dashboard stats
-loadDashboardStats();
+// ── Stats loader ─────────────────────────────────────────────────────────────
+async function loadStats() {
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<span class="tabular-nums">${val}</span>`;
+  };
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/admin/users', { headers: Auth.headers() });
+    if (r.ok) {
+      const j = await r.json();
+      const users = j.users || j || [];
+      const total = users.length;
+      const active = users.filter(u => u.is_active !== false).length;
+      const free = users.filter(u => !u.plan || u.plan === 'free').length;
+      const subs = users.filter(u => u.plan && u.plan !== 'free').length;
+      setVal('dashTotalUsers', total);
+      setVal('dashActiveUsers', active);
+      setVal('dashPlanFree', free);
+      setVal('dashSubs', subs);
+    } else {
+      ['dashTotalUsers','dashActiveUsers','dashPlanFree','dashSubs'].forEach(id => setVal(id, '—'));
+    }
+  } catch {
+    ['dashTotalUsers','dashActiveUsers','dashPlanFree','dashSubs'].forEach(id => setVal(id, '—'));
+  }
+}
+loadStats();
+
+// ── Local history + jobs ─────────────────────────────────────────────────────
+let localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
+document.getElementById('stJobs').textContent = localHist.length;
+
+function renderActivityFeed() {
+  const feed = document.getElementById('activityFeed');
+  if (localHist.length === 0) return;
+
+  feed.innerHTML = localHist.slice(0, 6).map(item => `
+    <div class="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+      <div class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0 mt-0.5">
+        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">${escHtml(item.source || 'Transkripsi')}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">${escHtml((item.text || '').slice(0, 100))}</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-500 font-medium">${escHtml(item.lang || '')}</span>
+        <p class="text-[10px] text-slate-400 mt-1 whitespace-nowrap">${escHtml(item.at || '')}</p>
+      </div>
+    </div>
+  `).join('');
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+renderActivityFeed();
+
+// ── ApexCharts — activity last 7 days ────────────────────────────────────────
+function buildChartData() {
+  const days = [];
+  const counts = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' });
+    days.push(label);
+    const dayStr = d.toLocaleDateString('id-ID');
+    counts.push(localHist.filter(h => h.at && h.at.startsWith(dayStr)).length);
+  }
+  return { days, counts };
+}
+
+const { days, counts } = buildChartData();
+const isDark = document.documentElement.classList.contains('dark');
+
+const chartOptions = {
+  series: [{ name: 'Jobs', data: counts }],
+  chart: {
+    type: 'area',
+    height: 220,
+    toolbar: { show: false },
+    background: 'transparent',
+    fontFamily: 'Inter, sans-serif',
+    sparkline: { enabled: false },
+    animations: { enabled: true, easing: 'easeinout', speed: 600 },
+  },
+  colors: ['#6366f1'],
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.45,
+      opacityTo: 0.0,
+      stops: [0, 100],
+      colorStops: [
+        { offset: 0, color: '#6366f1', opacity: 0.4 },
+        { offset: 100, color: '#6366f1', opacity: 0 }
+      ]
+    }
+  },
+  stroke: { curve: 'smooth', width: 2.5, colors: ['#6366f1'] },
+  dataLabels: { enabled: false },
+  grid: {
+    borderColor: isDark ? '#1e293b' : '#f1f5f9',
+    strokeDashArray: 4,
+    xaxis: { lines: { show: false } },
+    padding: { left: 0, right: 0, top: 0 }
+  },
+  xaxis: {
+    categories: days,
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+    labels: {
+      style: { colors: isDark ? '#64748b' : '#94a3b8', fontSize: '11px', fontFamily: 'Inter' }
+    }
+  },
+  yaxis: {
+    min: 0,
+    tickAmount: 3,
+    labels: {
+      style: { colors: isDark ? '#64748b' : '#94a3b8', fontSize: '11px', fontFamily: 'Inter' },
+      formatter: v => Math.round(v)
+    }
+  },
+  tooltip: {
+    theme: isDark ? 'dark' : 'light',
+    style: { fontSize: '12px', fontFamily: 'Inter' },
+    y: { formatter: v => v + ' job' }
+  },
+  markers: { size: 4, colors: ['#6366f1'], strokeColors: isDark ? '#0f172a' : '#fff', strokeWidth: 2, hover: { size: 6 } },
+  theme: { mode: isDark ? 'dark' : 'light' }
+};
+
+const chart = new ApexCharts(document.getElementById('chart'), chartOptions);
+chart.render();
+
+// Re-render chart on theme toggle
+const origToggle = Theme.toggle.bind(Theme);
+Theme.toggle = function () {
+  origToggle();
+  const dark = Theme.isDark;
+  chart.updateOptions({
+    grid: { borderColor: dark ? '#1e293b' : '#f1f5f9' },
+    xaxis: { labels: { style: { colors: dark ? '#64748b' : '#94a3b8' } } },
+    yaxis: { labels: { style: { colors: dark ? '#64748b' : '#94a3b8' } } },
+    tooltip: { theme: dark ? 'dark' : 'light' },
+    theme: { mode: dark ? 'dark' : 'light' }
+  });
+};
 </script>
+</body>
+</html>

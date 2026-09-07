@@ -27,7 +27,7 @@
       <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
       <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="billing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
+      <a href="billing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Riwayat</span></a>
       <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
     </nav>
     <div class="flex-1"></div>
@@ -36,6 +36,7 @@
 
   <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0">
+
     <!-- HEADER -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
       <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
@@ -51,12 +52,14 @@
     <!-- CONTENT -->
     <main class="p-4 md:p-6 max-w-3xl w-full mx-auto">
       <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Pilih Paket</h2>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Pilih Paket Bulanan/Tahunan</h2>
 
-        <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Pilih paket yang sesuai kebutuhan Anda. Paket Free adalah coba gratis, Basic untuk penggunaan harian, dan Pro untuk kebutuhan profesional.</p>
+
+        <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
           <!-- Free Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
             <div class="flex items-center justify-between mb-3">
               <div>
                 <h3 class="font-semibold text-slate-800 dark:text-white">Free</h3>
@@ -64,20 +67,33 @@
               </div>
               <span class="text-2xl font-bold text-indigo-600">Rp0</span>
             </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-              <li>✅ 10 transkripsi per bulan</li>
-              <li>✅ Export TXT / SRT / VTT</li>
-              <li>✅ Riwayat transkrip</li>
-              <li>❌ Transcribe batch (maksimal 3 file)</li>
-              <li>❌ Antrean async (tanpa Redis)</li>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8zM9 10a5 5 0 01-4-4H5a5 5 0 015-5h2a5 5 0 015 4h2a5 5 0 015 4h2a5 5 0 01-4 4h-2z"/>
+                </svg>
+                <span class="ml-2">10 transkripsi/bln</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8zM9 10a5 5 0 01-4-4H5a5 5 0 015-5h2a5 5 0 015 4h2a5 5 0 01-4 4h-2z"/>
+                </svg>
+                <span class="ml-2">Export TXT / SRT / VTT</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Riwayat transkrip</span>
+              </li>
             </ul>
-            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=free&period=monthly'">
+            <button class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=free&period=monthly'">
               Daftar Gratis
             </button>
           </div>
 
           <!-- Basic Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
             <div class="flex items-center justify-between mb-3">
               <div>
                 <h3 class="font-semibold text-slate-800 dark:text-white">Basic</h3>
@@ -85,12 +101,31 @@
               </div>
               <span class="text-2xl font-bold text-indigo-600">Rp49.000/bln</span>
             </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-              <li>✅ 300 transkripsi per bulan</li>
-              <li>✅ Transcribe batch (hingga 20 file)</li>
-              <li>✅ Ekspor TXT / SRT / VTT</li>
-              <li>✅ Antrean async prioritas</li>
-              <li>❌ Fitur premium (seperti model besar)</li>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">300 transkripsi/bln</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Transcribe batch (hingga 20 file)</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Ekspor TXT / SRT / VTT</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Antrean async prioritas</span>
+              </li>
             </ul>
             <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=basic&period=monthly'">
               Daftar Basic
@@ -98,23 +133,45 @@
           </div>
 
           <!-- Pro Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
             <div class="flex items-center justify-between mb-3">
               <div>
                 <h3 class="font-semibold text-slate-800 dark:text-white">Pro</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Paket profesional</p>
               </div>
-              <span class="text-2xl font-bold text-indigo-600">Rp149.000/bln</span>
+              <span class="text-2xl font-bold text-indigo-600">Rp149.000/bln<br><span class="text-sm text-slate-500 dark:text-slate-400">Rp1.490.000/tahun</span></span>
             </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-              <li>✅ Transkripsi tanpa limit</li>
-              <li>✅ Semua fitur termasuk async + batch</li>
-              <li>✅ Model besar (large-v3-turbo)</li>
-              <li>✅ Prioritas antrean</li>
-              <li>✅ Bantuan teknis lebih cepat</li>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Transkripsi tanpa limit</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Semua fitur termasuk async + batch</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Model besar (large-v3-turbo)</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
+                </svg>
+                <span class="ml-2">Prioritas antrean</span>
+              </li>
             </ul>
             <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=pro&period=monthly'">
-              Daftar Pro
+              Daftar Bulanan
+            </button>
+            <button class="w-full mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=pro&period=yearly'">
+              Daftar Tahunan
             </button>
           </div>
 
@@ -124,6 +181,7 @@
           <p>Semua paket memiliki <strong>jaminan uang kembali 7 hari</strong> untuk pelanggan baru.</p>
           <p>Setelah berakhir masa trial/coba, langganan akan secara otomatis diperbarui setiap <strong>bulan</strong> atau <strong>tahun</strong> sesuai pilihan.</p>
         </div>
+
       </div>
     </main>
   </div>
@@ -138,7 +196,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const activePlan = urlParams.get('plan');
 const cards = document.querySelectorAll('#plansGrid > div');
 cards.forEach(card => {
-  const code = card.querySelector('h3').innerText.replace(/[^a-zA-Z]/g, '').toLowerCase();
+  const code = card.querySelector('h3') ? card.querySelector('h3').innerText.replace(/[^a-zA-Z]/g, '').toLowerCase() : '';
   if (activePlan && activePlan === code) {
     card.style.border = '2px solid #10b981';
     card.style.boxShadow = '0 0 0 2px #10b98120';
