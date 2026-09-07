@@ -16,7 +16,7 @@ import json
 import os
 import secrets
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import jwt
@@ -433,3 +433,205 @@ def set_user_credits(username: str, amount: int) -> bool:
         user.credits = amount
         s.commit()
         return True
+
+
+# ---- Paket langganan & billing (Midtrans) ----
+# Harga placeholder (Rupiah), quota = jumlah transcribe per periode.
+# quota None = unlimited.
+PLANS: dict[str, dict] = {
+    "free": {
+        "code": "free", "name": "Free",
+        "monthly": 0, "yearly": 0,
+        "quota": 10, "minutes": 60,
+        "features": ["transcribe"],
+    },
+    "basic": {
+        "code": "basic", "name": "Basic",
+        "monthly": 49000, "yearly": 490000,
+        "quota": 300, "minutes": 1800,
+        "features": ["transcribe", "batch", "export"],
+    },
+    "pro": {
+        "code": "pro", "name": "Pro",
+        "monthly": 149000, "yearly": 1490000,
+        "quota": None, "minutes": None,
+        "features": ["transcribe", "batch", "async", "export", "priority"],
+    },
+}
+PERIODS = ("monthly", "yearly")
+PERIOD_DAYS = {"monthly": 30, "yearly": 365}
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    username: Mapped[str] = mapped_column(String(150), primary_key=True)
+    plan: Mapped[str] = mapped_column(String(20), default="free")
+    period: Mapped[str] = mapped_column(String(20), default="monthly")
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    quota_used: Mapped[int] = mapped_column(Integer, default=0)
+    quota_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+    order_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    username: Mapped[str] = mapped_column(String(150), index=True)
+    plan: Mapped[str] = mapped_column(String(20), default="basic")
+    period: Mapped[str] = mapped_column(String(20), default="monthly")
+    amount: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    raw: Mapped[str] = mapped_column(Text, default="")
+
+
+def _sub_to_dict(sub: Subscription) -> dict:
+    return {
+        "username": sub.username,
+        "plan": sub.plan,
+        "period": sub.period,
+        "status": sub.status,
+        "started_at": sub.started_at.isoformat() if sub.started_at else None,
+        "ends_at": sub.ends_at.isoformat() if sub.ends_at else None,
+        "quota_used": sub.quota_used,
+        "quota_limit": sub.quota_limit,
+        "plan_detail": PLANS.get(sub.plan, PLANS["free"]),
+    }
+
+
+def get_subscription(username: str) -> dict:
+    """Ambil langganan; buat Free bila belum ada; turunkan ke Free bila kedaluwarsa."""
+    now = datetime.now(timezone.utc)
+    with _session() as s:
+        sub = s.get(Subscription, username)
+        if sub is None:
+            sub = Subscription(
+                username=username, plan="free", period="monthly", status="active",
+                started_at=now, ends_at=None, quota_used=0,
+                quota_limit=PLANS["free"]["quota"], updated_at=now,
+            )
+            s.add(sub)
+            s.commit()
+        elif sub.status == "active" and sub.plan != "free" and sub.ends_at is not None:
+            ends = sub.ends_at if sub.ends_at.tzinfo else sub.ends_at.replace(tzinfo=timezone.utc)
+            if ends <= now:
+                sub.plan = "free"
+                sub.period = "monthly"
+                sub.status = "expired"
+                sub.quota_used = 0
+                sub.quota_limit = PLANS["free"]["quota"]
+                sub.ends_at = None
+                sub.updated_at = now
+                s.commit()
+        return _sub_to_dict(sub)
+
+
+def set_subscription(username: str, plan: str, period: str = "monthly") -> dict | None:
+    """Aktifkan/perpanjang paket (dipakai webhook sukses & override admin)."""
+    if plan not in PLANS or period not in PERIODS:
+        return None
+    now = datetime.now(timezone.utc)
+    with _session() as s:
+        if s.get(User, username) is None:
+            return None
+        sub = s.get(Subscription, username)
+        if sub is None:
+            sub = Subscription(username=username, started_at=now)
+            s.add(sub)
+        days = PERIOD_DAYS[period]
+        base = now
+        if sub.ends_at is not None:
+            ends = sub.ends_at if sub.ends_at.tzinfo else sub.ends_at.replace(tzinfo=timezone.utc)
+            if ends > now and sub.plan == plan:
+                base = ends  # perpanjang dari sisa masa aktif
+        sub.plan = plan
+        sub.period = period
+        sub.status = "active"
+        sub.started_at = now
+        sub.ends_at = None if plan == "free" else base + timedelta(days=days)
+        sub.quota_used = 0
+        sub.quota_limit = PLANS[plan]["quota"]
+        sub.updated_at = now
+        s.commit()
+        return _sub_to_dict(sub)
+
+
+def check_quota(username: str, n: int = 1) -> tuple[bool, dict]:
+    """Admin selalu lolos. Unlimited (None) selalu lolos."""
+    if is_admin_user(username):
+        info = get_subscription(username)
+        info["bypass"] = "admin"
+        return True, info
+    info = get_subscription(username)
+    limit = info["quota_limit"]
+    if limit is None:
+        return True, info
+    return (info["quota_used"] + n <= limit), info
+
+
+def consume_quota(username: str, n: int = 1) -> dict:
+    if is_admin_user(username):
+        return get_subscription(username)
+    with _session() as s:
+        sub = s.get(Subscription, username)
+        if sub is None:
+            return get_subscription(username)
+        if sub.quota_limit is not None:
+            sub.quota_used += n
+        sub.updated_at = datetime.now(timezone.utc)
+        s.commit()
+        return _sub_to_dict(sub)
+
+
+def create_payment(order_id: str, username: str, plan: str, period: str, amount: int) -> dict:
+    with _session() as s:
+        s.merge(Payment(order_id=order_id, username=username, plan=plan,
+                        period=period, amount=amount, status="pending"))
+        s.commit()
+        return {"order_id": order_id, "username": username, "plan": plan,
+                "period": period, "amount": amount, "status": "pending"}
+
+
+def update_payment(order_id: str, status: str, raw: str = "") -> dict | None:
+    with _session() as s:
+        row = s.get(Payment, order_id)
+        if row is None:
+            return None
+        row.status = status
+        if raw:
+            row.raw = raw[:4000]
+        if status in ("success", "settlement", "capture"):
+            row.paid_at = datetime.now(timezone.utc)
+        s.commit()
+        return {"order_id": row.order_id, "username": row.username, "plan": row.plan,
+                "period": row.period, "amount": row.amount, "status": row.status}
+
+
+def get_payment(order_id: str) -> dict | None:
+    with _session() as s:
+        row = s.get(Payment, order_id)
+        if row is None:
+            return None
+        return {"order_id": row.order_id, "username": row.username, "plan": row.plan,
+                "period": row.period, "amount": row.amount, "status": row.status}
+
+
+def list_payments(username: str, limit: int = 50) -> list[dict]:
+    with _session() as s:
+        rows = s.execute(
+            select(Payment).where(Payment.username == username)
+            .order_by(desc(Payment.created_at)).limit(limit)
+        ).scalars().all()
+        return [{"order_id": r.order_id, "plan": r.plan, "period": r.period,
+                 "amount": r.amount, "status": r.status,
+                 "created_at": r.created_at.isoformat() if r.created_at else None,
+                 "paid_at": r.paid_at.isoformat() if r.paid_at else None} for r in rows]
+
+
+def list_subscriptions() -> list[dict]:
+    with _session() as s:
+        rows = s.execute(select(Subscription).order_by(Subscription.username)).scalars().all()
+        return [_sub_to_dict(r) for r in rows]

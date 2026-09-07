@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import logging
 import wave
+import json
+import secrets
+import time
 from pathlib import Path
 
 from fastapi import (
@@ -11,6 +14,7 @@ from fastapi import (
     File,
     Header,
     HTTPException,
+    Request,
     UploadFile,
     WebSocket,
     WebSocketDisconnect,
@@ -24,10 +28,15 @@ from sqlalchemy import select
 
 from app.auth import (
     APIKey,
+    PERIODS,
+    PLANS,
     _session,
     add_credits,
+    check_quota,
+    consume_quota,
     consume_reset_token,
     create_and_send_reset_token,
+    create_payment,
     create_user,
     deduct_credits,
     delete_user,
@@ -35,20 +44,27 @@ from app.auth import (
     export_history,
     generate_api_key,
     get_history,
+    get_payment,
+    get_subscription,
     get_user_credits,
     is_admin_user,
     is_postgres as auth_db_is_postgres,
     list_audit_logs,
     list_history,
+    list_payments,
+    list_subscriptions,
     list_users,
     log_activity,
     make_token,
     parse_token,
     save_history,
+    set_subscription,
     set_user_credits,
+    update_payment,
     update_user_role,
     verify_user,
 )
+from app import billing
 from app.auth import (
     is_postgres as auth_db_is_postgres,
 )
@@ -146,6 +162,28 @@ def login(body: LoginIn):
     if not verify_user(body.username, body.password):
         raise HTTPException(status_code=401, detail="Kredensial salah")
     return {"access_token": make_token(body.username), "token_type": "bearer"}
+
+
+class RegisterIn(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/api/v1/auth/register")
+def register(body: RegisterIn):
+    import re
+
+    username = (body.username or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_.\-]{3,32}", username):
+        raise HTTPException(status_code=400, detail="Username 3-32 karakter (huruf/angka/_/./-)")
+    if len(body.password or "") < 4:
+        raise HTTPException(status_code=400, detail="Password minimal 4 karakter")
+    if not create_user(username, body.password, "user"):
+        raise HTTPException(status_code=400, detail="Username sudah dipakai")
+    get_subscription(username)  # paket Free otomatis
+    log_activity(username, "register", "self-signup")
+    return {"status": "success", "username": username,
+            "access_token": make_token(username), "token_type": "bearer"}
 
 
 @app.post("/api/v1/auth/forgot")
@@ -293,6 +331,101 @@ def set_credits_endpoint(username: str, body: CreditsSetIn, user: str = Depends(
     return {"status": "success", "username": username, "credits": body.amount}
 
 
+# ---- Langganan & billing ----
+@app.get("/api/v1/plans")
+def plans():
+    return {"status": "success", "data": list(PLANS.values())}
+
+
+@app.get("/api/v1/subscriptions/me")
+def my_subscription(user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"status": "success", "data": get_subscription(user)}
+
+
+class CheckoutIn(BaseModel):
+    plan: str
+    period: str = "monthly"
+
+
+@app.post("/api/v1/subscriptions/checkout")
+async def checkout(body: CheckoutIn, user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    if body.plan not in PLANS or body.plan == "free":
+        raise HTTPException(status_code=400, detail="Paket tidak valid")
+    if body.period not in PERIODS:
+        raise HTTPException(status_code=400, detail="Periode harus monthly/yearly")
+    if not billing.server_key():
+        raise HTTPException(status_code=503, detail="MIDTRANS_SERVER_KEY belum dikonfigurasi")
+    amount = PLANS[body.plan][body.period]
+    order_id = f"stt-{user}-{int(time.time())}-{secrets.token_hex(3)}"
+    create_payment(order_id, user, body.plan, body.period, amount)
+    log_activity(user, "checkout", f"{body.plan}/{body.period}:{order_id}")
+    try:
+        snap = await billing.create_snap_transaction(order_id, amount, user)
+    except Exception as e:
+        update_payment(order_id, "failed", str(e))
+        raise HTTPException(status_code=502, detail=f"Midtrans error: {e}")
+    return {"status": "success", "order_id": order_id, "amount": amount,
+            "snap_token": snap["token"], "redirect_url": snap["redirect_url"]}
+
+
+@app.post("/api/v1/midtrans/webhook")
+async def midtrans_webhook(request: Request):
+    body = await request.json()
+    order_id = str(body.get("order_id", ""))
+    status_code = str(body.get("status_code", ""))
+    gross_amount = str(body.get("gross_amount", ""))
+    signature = str(body.get("signature_key", ""))
+    if not billing.server_key():
+        raise HTTPException(status_code=500, detail="MIDTRANS_SERVER_KEY belum dikonfigurasi")
+    if not billing.verify_signature(order_id, status_code, gross_amount, signature):
+        raise HTTPException(status_code=403, detail="Signature tidak valid")
+    pay = get_payment(order_id)
+    if pay is None:
+        return {"status": "ignored", "reason": "order tidak dikenal"}
+    trx = str(body.get("transaction_status", ""))
+    fraud = str(body.get("fraud_status", ""))
+    raw = json.dumps({k: body.get(k) for k in ("transaction_status", "fraud_status", "payment_type", "gross_amount")})
+    if billing.is_paid_status(trx, fraud):
+        update_payment(order_id, "success", raw)
+        set_subscription(pay["username"], pay["plan"], pay["period"])
+        log_activity(pay["username"], "subscribe", f"{pay['plan']}/{pay['period']}:{order_id}")
+    elif trx in ("expire", "cancel", "deny", "failure"):
+        update_payment(order_id, "failed", raw)
+    else:
+        update_payment(order_id, "pending", raw)
+    return {"status": "success", "order_id": order_id}
+
+
+@app.get("/api/v1/billing")
+def billing_history(user: str | None = Depends(current_user)):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Butuh token")
+    return {"status": "success", "data": list_payments(user)}
+
+
+@app.get("/api/v1/subscriptions")
+def all_subscriptions(user: str = Depends(admin_user)):
+    return {"status": "success", "data": list_subscriptions()}
+
+
+class SubSetIn(BaseModel):
+    plan: str
+    period: str = "monthly"
+
+
+@app.post("/api/v1/subscriptions/{username}/set")
+def set_subscription_endpoint(username: str, body: SubSetIn, user: str = Depends(admin_user)):
+    sub = set_subscription(username, body.plan, body.period)
+    if sub is None:
+        raise HTTPException(status_code=400, detail="User/paket/periode tidak valid")
+    log_activity(user, "sub_set", f"{username}:{body.plan}/{body.period}")
+    return {"status": "success", "data": sub}
+
+
 def system_info() -> dict:
     import shutil
 
@@ -412,6 +545,9 @@ async def transcribe_audio(
         success, remaining = deduct_credits(user, 1)
         if not success:
             raise HTTPException(status_code=402, detail=f"Kredit tidak cukup. Sisa: {remaining}")
+        ok, sub = check_quota(user, 1)
+        if not ok:
+            raise HTTPException(status_code=402, detail=f"Kuota paket {sub['plan']} habis ({sub['quota_used']}/{sub['quota_limit']}). Upgrade di menu Langganan.")
     raw = await file.read()
     out = _transcribe_bytes(file.filename or "audio.wav", raw, language, user)
     if user:
@@ -419,6 +555,8 @@ async def transcribe_audio(
     if out["status"] == "error":
         code = 503 if "belum terinstall" in out.get("detail", "") else 400
         raise HTTPException(status_code=code, detail=out["detail"])
+    if user:
+        consume_quota(user, 1)
     return {"status": "success", "data": out["data"], "credits_remaining": remaining if user else None}
 
 
@@ -435,6 +573,9 @@ async def transcribe_batch(
         success, remaining = deduct_credits(user, len(files))
         if not success:
             raise HTTPException(status_code=402, detail=f"Kredit tidak cukup untuk {len(files)} file. Sisa: {remaining}")
+        okq, sub = check_quota(user, len(files))
+        if not okq:
+            raise HTTPException(status_code=402, detail=f"Kuota paket {sub['plan']} habis ({sub['quota_used']}/{sub['quota_limit']}). Upgrade di menu Langganan.")
     results = []
     for f in files:
         raw = await f.read()
@@ -442,6 +583,8 @@ async def transcribe_batch(
         if user:
             log_activity(user, 'transcribe', f'batch:{f.filename or "audio.wav"}')
     ok = sum(1 for r in results if r["status"] == "success")
+    if user and ok:
+        consume_quota(user, ok)
     return {"status": "success", "summary": {"total": len(results), "ok": ok, "failed": len(results) - ok}, "data": results, "credits_remaining": remaining if user else None}
 
 
@@ -464,6 +607,10 @@ async def transcribe_async(
         success, remaining = deduct_credits(user, 1)
         if not success:
             raise HTTPException(status_code=402, detail=f"Kredit tidak cukup. Sisa: {remaining}")
+        okq, sub = check_quota(user, 1)
+        if not okq:
+            raise HTTPException(status_code=402, detail=f"Kuota paket {sub['plan']} habis ({sub['quota_used']}/{sub['quota_limit']}). Upgrade di menu Langganan.")
+        consume_quota(user, 1)
     raw = await file.read()
     file_b64 = base64.b64encode(raw).decode()
 
@@ -494,6 +641,10 @@ async def transcribe_batch_async(
         success, remaining = deduct_credits(user, len(files))
         if not success:
             raise HTTPException(status_code=402, detail=f"Kredit tidak cukup untuk {len(files)} file. Sisa: {remaining}")
+        okq, sub = check_quota(user, len(files))
+        if not okq:
+            raise HTTPException(status_code=402, detail=f"Kuota paket {sub['plan']} habis ({sub['quota_used']}/{sub['quota_limit']}). Upgrade di menu Langganan.")
+        consume_quota(user, len(files))
 
     files_data = []
     for f in files:
