@@ -599,3 +599,7 @@ if FRONTEND_DIR.exists():
             return FileResponse(str(index))
 
     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+    # Halaman frontend (login.html, dashboard.html, ...) di-link relatif,
+    # jadi harus bisa diakses di root: /login.html, /dashboard.html, dst.
+    # Mount "/" didaftarkan terakhir agar rute API di atas tetap menang.
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="root_frontend")
