@@ -17,7 +17,6 @@
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
     .plan-card {
       position: relative;
-      overflow: hidden;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -35,7 +34,7 @@
       content: '';
       position: absolute;
       inset: -1.5px;
-      border-radius: inherit;
+      border-radius: 1rem; /* match rounded-2xl */
       padding: 1.5px;
       background: conic-gradient(from var(--angle), transparent 60%, rgba(99,102,241,0) 70%);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -45,6 +44,7 @@
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.3s ease;
+      z-index: 1;
     }
 
     /* Selected state */
@@ -62,7 +62,7 @@
       content: '';
       position: absolute;
       inset: -1.5px;
-      border-radius: inherit;
+      border-radius: 1rem;
       padding: 1.5px;
       background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -70,7 +70,7 @@
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
-      z-index: 0;
+      z-index: 1;
     }
     .plan-card.popular.selected::after { opacity: 0; }
 
@@ -203,7 +203,7 @@
       </div>
 
       <!-- Plan cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto mt-6 pt-4">
 
         <!-- Free -->
         <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col" data-plan="free" onclick="selectPlan('free')">
@@ -230,10 +230,13 @@
         </div>
 
         <!-- Basic (popular) -->
-        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 flex flex-col relative" data-plan="basic" onclick="selectPlan('basic')">
-          <div class="select-badge" style="top:36px"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-            <span class="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-bold shadow-lg shadow-indigo-900/30">POPULER</span>
+        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 pt-10 flex flex-col relative" data-plan="basic" onclick="selectPlan('basic')">
+          <div class="select-badge" style="top:44px"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+          <!-- Badge POPULER -->
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+            <span class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-bold shadow-lg shadow-indigo-900/40 ring-2 ring-white dark:ring-slate-900 whitespace-nowrap">
+              ⭐ POPULER
+            </span>
           </div>
           <div class="mb-5">
             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-3">
