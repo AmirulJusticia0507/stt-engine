@@ -359,9 +359,34 @@ function setPeriod(p) {
   document.getElementById('proSavings').textContent = isYearly ? 'Hemat Rp298.000 vs bulanan' : '';
 }
 
-function checkout(plan) {
+async function checkout(plan) {
   selectedPlan = plan;
-  window.location.href = `/checkout?plan=${plan}&period=${currentPeriod}`;
+  Swal.showLoading();
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/subscriptions/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, period: currentPeriod })
+    });
+    const data = await r.json();
+    Swal.close();
+    if (!r.ok) throw new Error(data.detail || 'Gagal membuat transaksi');
+    // Tampilkan Midtrans Snap menggunakan token yang dikembalikan
+    // Jika server belum dikonfigurasi, tampilkan pesan info
+    if (!data.snap_token) {
+      UI.err('Fitur pembayaran Midtrans belum dikonfigurasi di lingkungan ini. Kontak admin untuk paket premium.');
+      return;
+    }
+    // Redirect ke halaman pembayaran Midtrans (bisa pakai Midtrans Embedded SDK)
+    // Untuk sekarang, tampilkan konfirmasi dan arahkan ke URL redirect
+    const redirectUrl = data.redirect_url || '#';
+    Swal.close();
+    UI.ok(`Transaksi berhasil dibuat. Arahkan ke pembayaran Midtrans...`);
+    window.location.href = redirectUrl;
+  } catch (e) {
+    Swal.close();
+    UI.err(e.message);
+  }
 }
 
 // Highlight active plan from URL, atau default ke basic
