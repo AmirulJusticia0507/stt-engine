@@ -39,8 +39,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def database_url() -> str:
-    url = os.getenv("DATABASE_URL", "").strip()
+    url = os.getenv("DATABASE_URL", "").strip().strip('"').strip("'")
     if url:
+        # Skema postgres:// (umum dari provider) tak dikenal SQLAlchemy;
+        # normalisasi ke postgresql:// agar create_engine tidak meledak 500.
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
         return url
     legacy = os.getenv("STT_DB", "").strip()
     if legacy and not legacy.startswith("sqlite"):
