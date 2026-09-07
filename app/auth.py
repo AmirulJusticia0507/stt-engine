@@ -23,9 +23,16 @@ import jwt
 from sqlalchemy import DateTime, Integer, String, Text, create_engine, desc, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int((os.getenv(name, "") or "").strip() or default)
+    except (ValueError, TypeError):
+        return default
+
+
 SECRET = os.getenv("JWT_SECRET", "dev-secret-ganti-di-produksi")
 ALGO = "HS256"
-EXP_HOURS = int(os.getenv("JWT_EXP_HOURS", "12"))
+EXP_HOURS = _env_int("JWT_EXP_HOURS", 12)
 RESET_EXP_SEC = 30 * 60
 
 BASE_DIR = Path(__file__).resolve().parent.parent
