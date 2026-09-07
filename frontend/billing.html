@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Riwayat Pembayaran — STT Engine</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/theme.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+    <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
+      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
+        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
+        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      </a>
+      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+    </div>
+    <nav class="px-2 space-y-1 text-sm">
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
+      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
+      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
+      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
+      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
+      <a href="pricing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
+      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+    </nav>
+    <div class="flex-1"></div>
+    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- HEADER -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
+      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
+      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Riwayat Pembayaran</h1>
+      <div class="flex-1"></div>
+      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="p-4 md:p-6 max-w-2xl w-full mx-auto">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-4">Riwayat Pembayaran Saya</h2>
+
+        <div id="paymentsList" class="space-y-4">
+
+          <div class="text-center py-8">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 dark:border-slate-800 mx-auto mb-4"></div>
+            <p class="text-slate-500 dark:text-slate-400">Memuat riwayat pembayaran...</p>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+document.getElementById('who').textContent = Auth.user;
+
+async function loadPayments() {
+  const body = document.getElementById('paymentsList');
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/billing', { headers: Auth.headers() });
+    if (!r.ok) throw new Error('Gagal memuat riwayat pembayaran');
+    const j = await r.json();
+    const payments = j.data || [];
+    if (payments.length === 0) {
+      body.innerHTML = '<p class="text-center text-slate-500 dark:text-slate-400 text-sm">Belum ada riwayat pembayaran. Lakukan checkout di halaman Langganan untuk mulai berlangganan.</p>';
+      return;
+    }
+    let html = '';
+    payments.forEach(p => {
+      const statusColor = p.status === 'success' ? 'text-indigo-600' : p.status === 'pending' ? 'text-orange-500' : 'text-rose-500';
+      const statusText = p.status === 'success' ? 'Berhasil' : p.status === 'pending' ? 'Menunggu' : 'Gagal';
+      const date = p.created_at ? new Date(p.created_at).toLocaleDateString('id-ID') : '-';
+      html += `
+        <div class="p-4 rounded-xl border-l-4 ${p.status === 'success' ? 'border-indigo-500' : p.status === 'pending' ? 'border-orange-500' : 'border-rose-500'} ${p.status === 'success' ? 'bg-indigo-50' : p.status === 'pending' ? 'bg-orange-50' : 'bg-rose-50'} dark:bg-slate-800/80 dark:border-slate-700/50 dark:bg-indigo-900/50 dark:border-indigo-500/50 dark:text-indigo-300 dark:text-orange-300 dark:text-rose-300">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-medium text-slate-800 dark:text-white">${p.plan || '-'}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400">${date}</p>
+            </div>
+            <span class="text-xs font-bold ${statusColor}">${statusText}</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Rp ${p.amount || 0} — ${p.period || '-'}</p>
+        </div>
+      `;
+    });
+    body.innerHTML = html;
+  } catch (e) {
+    body.innerHTML = `<p class="text-center text-rose-500 dark:text-rose-400">Gagal memuat: ` + e.message + '</p>';
+  }
+}
+loadPayments();
+</script>
+</body>
+</html>

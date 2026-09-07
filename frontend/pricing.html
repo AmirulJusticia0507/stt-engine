@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Langganan — STT Engine</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/theme.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+    <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
+      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
+        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
+        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      </a>
+      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+    </div>
+    <nav class="px-2 space-y-1 text-sm">
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
+      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
+      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
+      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
+      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
+      <a href="billing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
+      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+    </nav>
+    <div class="flex-1"></div>
+    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- HEADER -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
+      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
+      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Langganan</h1>
+      <div class="flex-1"></div>
+      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="p-4 md:p-6 max-w-3xl w-full mx-auto">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Pilih Paket</h2>
+
+        <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+          <!-- Free Card -->
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-semibold text-slate-800 dark:text-white">Free</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Paket gratis</p>
+              </div>
+              <span class="text-2xl font-bold text-indigo-600">Rp0</span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+              <li>✅ 10 transkripsi per bulan</li>
+              <li>✅ Export TXT / SRT / VTT</li>
+              <li>✅ Riwayat transkrip</li>
+              <li>❌ Transcribe batch (maksimal 3 file)</li>
+              <li>❌ Antrean async (tanpa Redis)</li>
+            </ul>
+            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=free&period=monthly'">
+              Daftar Gratis
+            </button>
+          </div>
+
+          <!-- Basic Card -->
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-semibold text-slate-800 dark:text-white">Basic</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Paket dasar</p>
+              </div>
+              <span class="text-2xl font-bold text-indigo-600">Rp49.000/bln</span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+              <li>✅ 300 transkripsi per bulan</li>
+              <li>✅ Transcribe batch (hingga 20 file)</li>
+              <li>✅ Ekspor TXT / SRT / VTT</li>
+              <li>✅ Antrean async prioritas</li>
+              <li>❌ Fitur premium (seperti model besar)</li>
+            </ul>
+            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=basic&period=monthly'">
+              Daftar Basic
+            </button>
+          </div>
+
+          <!-- Pro Card -->
+          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-5 transition">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-semibold text-slate-800 dark:text-white">Pro</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Paket profesional</p>
+              </div>
+              <span class="text-2xl font-bold text-indigo-600">Rp149.000/bln</span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+              <li>✅ Transkripsi tanpa limit</li>
+              <li>✅ Semua fitur termasuk async + batch</li>
+              <li>✅ Model besar (large-v3-turbo)</li>
+              <li>✅ Prioritas antrean</li>
+              <li>✅ Bantuan teknis lebih cepat</li>
+            </ul>
+            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=pro&period=monthly'">
+              Daftar Pro
+            </button>
+          </div>
+
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-slate-200/20 dark:border-slate-700/50 text-center text-sm text-slate-500 dark:text-slate-400">
+          <p>Semua paket memiliki <strong>jaminan uang kembali 7 hari</strong> untuk pelanggan baru.</p>
+          <p>Setelah berakhir masa trial/coba, langganan akan secara otomatis diperbarui setiap <strong>bulan</strong> atau <strong>tahun</strong> sesuai pilihan.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+document.getElementById('who').textContent = Auth.user;
+
+// Smooth highlight pada card aktif berdasarkan URL params
+const urlParams = new URLSearchParams(window.location.search);
+const activePlan = urlParams.get('plan');
+const cards = document.querySelectorAll('#plansGrid > div');
+cards.forEach(card => {
+  const code = card.querySelector('h3').innerText.replace(/[^a-zA-Z]/g, '').toLowerCase();
+  if (activePlan && activePlan === code) {
+    card.style.border = '2px solid #10b981';
+    card.style.boxShadow = '0 0 0 2px #10b98120';
+  }
+});
+</script>
+</body>
+</html>
