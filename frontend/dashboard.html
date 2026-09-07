@@ -12,6 +12,7 @@
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
 <div class="flex min-h-screen">
+
   <!-- SIDEBAR -->
   <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
@@ -28,7 +29,6 @@
       <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
       <a href="pricing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
-      <a href="settings.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
       <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
     </nav>
     <div class="flex-1"></div>
@@ -37,6 +37,7 @@
 
   <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0">
+
     <!-- HEADER -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
       <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
@@ -52,6 +53,55 @@
 
     <!-- CONTENT -->
     <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+
+      <!-- STATS CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
+          <div class="flex items-start">
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-lg font-bold text-indigo-600">👥</span>
+            </div>
+            <div class="ml-3">
+              <p class="text-xs text-slate-500 dark:text-slate-400">Total User</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="dashTotalUsers">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
+          <div class="flex items-start">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-lg font-bold text-emerald-600">🟢</span>
+            </div>
+            <div class="ml-3">
+              <p class="text-xs text-slate-500 dark:text-slate-400">Aktif</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="dashActiveUsers">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
+          <div class="flex items-start">
+            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-lg font-bold text-violet-600">📦</span>
+            </div>
+            <div class="ml-3">
+              <p class="text-xs text-slate-500 dark:text-slate-400">Paket Free</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="dashPlanFree">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-4 transition">
+          <div class="flex items-start">
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-lg font-bold text-indigo-600">💳</span>
+            </div>
+            <div class="ml-3">
+              <p class="text-xs text-slate-500 dark:text-slate-400">Langganan</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="dashSubs">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- DASHBOARD OVERVIEW -->
       <section>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -68,15 +118,12 @@
             <div class="text-sm text-slate-500 dark:text-slate-400">Model / Device</div>
           </div>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-4 transition">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 mt-4 transition">
           <b class="text-slate-900 dark:text-white">Aktivitas terakhir</b>
           <pre id="activity" class="bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 rounded-lg p-3 mt-2 text-xs overflow-auto">Belum ada aktivitas.</pre>
         </div>
       </section>
     </main>
-
-    <!-- FOOTER -->
-    <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
   </div>
 </div>
 
@@ -86,6 +133,47 @@ if (!Auth.requireAuth()) throw new Error('redirect');
 document.getElementById('who').textContent = Auth.user;
 document.getElementById('footUser').textContent = Auth.user;
 let wsCount = 0, localHist = JSON.parse(localStorage.getItem('stt_history') || '[]');
+
+// dashboard stats fetch
+async function loadDashboardStats() {
+  try {
+    // Fetch users count
+    const usersR = await fetch(Auth.apiBase + '/api/v1/users', { headers: Auth.headers() });
+    if (usersR.ok) {
+      const usersJ = await usersR.json();
+      const users = usersJ.users || [];
+      const total = users.length;
+      const active = users.filter(u => u.status === 'active' || (u.role !== 'admin' && u.plan !== 'Free')).length || 0;
+      const free = users.filter(u => u.plan === 'Free').length || 0;
+      const subs = users.filter(u => u.plan && u.plan !== 'Free').length || 0;
+      
+      document.getElementById('dashTotalUsers').textContent = total;
+      document.getElementById('dashActiveUsers').textContent = active;
+      document.getElementById('dashPlanFree').textContent = free;
+      document.getElementById('dashSubs').textContent = subs;
+    }
+
+    // Fetch billing summary
+    const billingR = await fetch(Auth.apiBase + '/api/v1/billing', { headers: Auth.headers() });
+    if (billingR.ok) {
+      const billingJ = await billingR.json();
+      const payments = billingJ.data || [];
+      let total = 0, activePay = 0, totalQuota = 0;
+      payments.forEach(p => {
+        total += (p.amount || 0);
+        if (p.status === 'success') activePay++;
+        totalQuota += (p.quota_used || 0);
+      });
+      document.getElementById('totalPayments').textContent = formatRupiah(total);
+      document.getElementById('activeSubs').textContent = activePay;
+      document.getElementById('avgQuota').textContent = payments.length > 0 ? Math.round(totalQuota / payments.length) : 0;
+    }
+  } catch (e) { console.error(e); }
+}
+
+function formatRupiah(angka) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
+}
 
 // sidebar collapse
 const sb = document.getElementById('sidebar');
@@ -104,16 +192,6 @@ fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
   document.getElementById('stModel').textContent = (j.model || '-') + ' / ' + (j.device || '-');
 }).catch(() => document.getElementById('health').textContent = 'backend unreachable');
 
-function pushLocal(entry) {
-  localHist.unshift({ at: new Date().toLocaleString(), ...entry });
-  localHist = localHist.slice(0, 50);
-  localStorage.setItem('stt_history', JSON.stringify(localHist));
-  document.getElementById('stJobs').textContent = localHist.length;
-  document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
-}
-document.getElementById('stJobs').textContent = localHist.length;
-if (localHist[0]) document.getElementById('activity').textContent = JSON.stringify(localHist[0], null, 2);
-
 // Check admin role to show/hide admin-only menu
 async function checkAdminRole() {
   try {
@@ -126,6 +204,7 @@ async function checkAdminRole() {
   } catch {}
 }
 checkAdminRole();
+
+// Initialize dashboard stats
+loadDashboardStats();
 </script>
-</body>
-</html>
