@@ -1,7 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
 fastapi>=0.110
 uvicorn[standard]>=0.29
 faster-whisper>=1.0
-torch --extra-index-url https://download.pytorch.org/whl/cu121
+torch
 websockets>=12
 python-multipart>=0.0.9
 PyJWT>=2.8
