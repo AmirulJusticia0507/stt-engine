@@ -119,3 +119,27 @@ def test_admin_set_subscription(client, auth_headers):
                      json={"plan": "pro", "period": "monthly"},
                      headers={"Authorization": f"Bearer {tok}"})
     assert r2.status_code == 403
+
+
+def test_admin_cancel_subscription(client, auth_headers):
+    _reg(client, "budi_cancel")
+    # Aktifkan paket basic dulu
+    r = client.post("/api/v1/subscriptions/budi_cancel/set",
+                    json={"plan": "basic", "period": "monthly"},
+                    headers=auth_headers)
+    assert r.status_code == 200, r.text
+    # Admin membatalkan
+    r = client.post("/api/v1/subscriptions/budi_cancel/cancel",
+                    headers=auth_headers)
+    assert r.status_code == 200, r.text
+    data = r.json()["data"]
+    assert data["plan"] == "free" and data["quota_limit"] == 10
+    # User biasa tidak boleh
+    tok = _token(client, "budi_cancel")
+    r2 = client.post("/api/v1/subscriptions/budi_cancel/cancel",
+                     headers={"Authorization": f"Bearer {tok}"})
+    assert r2.status_code == 403
+    # Cek bahwa paket user kembali free
+    me = client.get("/api/v1/subscriptions/me",
+                    headers={"Authorization": f"Bearer {tok}"}).json()["data"]
+    assert me["plan"] == "free" and me["quota_limit"] == 10

@@ -30,6 +30,7 @@ from app.auth import (
     APIKey,
     PERIODS,
     PLANS,
+    Subscription,
     _session,
     add_credits,
     check_quota,
@@ -424,6 +425,29 @@ def set_subscription_endpoint(username: str, body: SubSetIn, user: str = Depends
         raise HTTPException(status_code=400, detail="User/paket/periode tidak valid")
     log_activity(user, "sub_set", f"{username}:{body.plan}/{body.period}")
     return {"status": "success", "data": sub}
+
+
+@app.post("/api/v1/subscriptions/{username}/cancel")
+def cancel_subscription_endpoint(username: str, user: str = Depends(admin_user)):
+    if not is_admin_user(user):
+        raise HTTPException(status_code=403, detail="Hanya admin")
+    with _session() as s:
+        sub = s.get(Subscription, username)
+        if sub is None:
+            raise HTTPException(status_code=404, detail="User belum punya langganan")
+        # Set status expired dan turun ke Free
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        sub.status = "expired"
+        sub.plan = "free"
+        sub.period = "monthly"
+        sub.quota_used = 0
+        sub.quota_limit = PLANS["free"]["quota"]
+        sub.ends_at = None
+        sub.updated_at = now
+        s.commit()
+        log_activity(user, "sub_cancel", f"{username}:free")
+    return {"status": "success", "data": {"plan": "free", "period": "monthly", "quota_limit": PLANS["free"]["quota"]}}
 
 
 def system_info() -> dict:
