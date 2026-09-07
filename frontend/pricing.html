@@ -15,11 +15,53 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
-    .plan-card { position: relative; overflow: hidden; }
-    .plan-card.popular::before {
+    .plan-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .plan-card:hover { transform: translateY(-4px); }
+
+    /* Animated rotating gradient border */
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes spin-border { to { --angle: 360deg; } }
+
+    .plan-card::before {
       content: '';
       position: absolute;
-      inset: 0;
+      inset: -1.5px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(from var(--angle), transparent 60%, rgba(99,102,241,0) 70%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Selected state */
+    .plan-card.selected {
+      transform: translateY(-6px) scale(1.02);
+    }
+    .plan-card.selected::before {
+      opacity: 1;
+      background: conic-gradient(from var(--angle), #6366f1, #a855f7, #ec4899, #6366f1);
+      animation: spin-border 3s linear infinite;
+    }
+
+    /* Popular default gradient border */
+    .plan-card.popular::after {
+      content: '';
+      position: absolute;
+      inset: -1.5px;
       border-radius: inherit;
       padding: 1.5px;
       background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
@@ -28,6 +70,34 @@
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
+      z-index: 0;
+    }
+    .plan-card.popular.selected::after { opacity: 0; }
+
+    /* Glow shadow per plan */
+    .plan-card.selected[data-plan="free"]  { box-shadow: 0 8px 40px rgba(100,116,139,0.25); }
+    .plan-card.selected[data-plan="basic"] { box-shadow: 0 8px 40px rgba(99,102,241,0.35); }
+    .plan-card.selected[data-plan="pro"]   { box-shadow: 0 8px 40px rgba(168,85,247,0.35); }
+
+    /* Checkmark badge on selected */
+    .plan-card .select-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.2s ease, transform 0.25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .plan-card.selected .select-badge {
+      opacity: 1;
+      transform: scale(1);
     }
   </style>
 </head>
@@ -136,7 +206,8 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
 
         <!-- Free -->
-        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col">
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col" data-plan="free" onclick="selectPlan('free')">
+          <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
           <div class="mb-5">
             <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
               <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"/></svg>
@@ -155,11 +226,12 @@
             <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Batch upload</li>
             <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Antrean prioritas</li>
           </ul>
-          <button onclick="checkout('free')" class="w-full py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">Mulai Gratis</button>
+          <button onclick="event.stopPropagation();checkout('free')" class="plan-btn w-full py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">Mulai Gratis</button>
         </div>
 
         <!-- Basic (popular) -->
-        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 flex flex-col relative">
+        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 flex flex-col relative" data-plan="basic" onclick="selectPlan('basic')">
+          <div class="select-badge" style="top:36px"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
           <div class="absolute -top-3 left-1/2 -translate-x-1/2">
             <span class="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-bold shadow-lg shadow-indigo-900/30">POPULER</span>
           </div>
@@ -181,11 +253,12 @@
             <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Antrean async prioritas</li>
             <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Model large-v3-turbo</li>
           </ul>
-          <button onclick="checkout('basic')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-900/30 transition">Pilih Basic</button>
+          <button onclick="event.stopPropagation();checkout('basic')" class="plan-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-900/30 transition">Pilih Basic</button>
         </div>
 
         <!-- Pro -->
-        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col">
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col" data-plan="pro" onclick="selectPlan('pro')">
+          <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
           <div class="mb-5">
             <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-3">
               <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
@@ -204,7 +277,7 @@
             <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Model large-v3-turbo</li>
             <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Prioritas antrean tertinggi</li>
           </ul>
-          <button onclick="checkout('pro')" class="w-full py-2.5 rounded-xl border-2 border-violet-500/50 text-violet-500 font-semibold text-sm hover:bg-violet-500/10 transition">Pilih Pro</button>
+          <button onclick="event.stopPropagation();checkout('pro')" class="plan-btn w-full py-2.5 rounded-xl border-2 border-violet-500/50 text-violet-500 font-semibold text-sm hover:bg-violet-500/10 transition">Pilih Pro</button>
         </div>
       </div>
 
@@ -249,6 +322,26 @@ async function checkAdminRole() {
 checkAdminRole();
 
 let currentPeriod = 'monthly';
+let selectedPlan = 'basic'; // default terpilih
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(card => {
+    const isSelected = card.dataset.plan === plan;
+    card.classList.toggle('selected', isSelected);
+  });
+  // Update tombol checkout jadi aktif/prominent
+  document.querySelectorAll('.plan-btn').forEach(btn => {
+    const card = btn.closest('.plan-card');
+    if (!card) return;
+    const isSelected = card.dataset.plan === plan;
+    if (isSelected) {
+      btn.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-500');
+    } else {
+      btn.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-500');
+    }
+  });
+}
 const PRICES = {
   basic:  { monthly: 'Rp49.000',  yearly: 'Rp490.000' },
   pro:    { monthly: 'Rp149.000', yearly: 'Rp1.490.000' },
@@ -267,19 +360,13 @@ function setPeriod(p) {
 }
 
 function checkout(plan) {
+  selectedPlan = plan;
   window.location.href = `/checkout?plan=${plan}&period=${currentPeriod}`;
 }
 
-// Highlight active plan from URL
-const activePlan = new URLSearchParams(location.search).get('plan');
-if (activePlan) {
-  document.querySelectorAll('.plan-card').forEach(card => {
-    const h3 = card.querySelector('h3');
-    if (h3 && h3.textContent.toLowerCase() === activePlan.toLowerCase()) {
-      card.style.boxShadow = '0 0 0 2px #6366f1, 0 8px 32px rgba(99,102,241,0.15)';
-    }
-  });
-}
+// Highlight active plan from URL, atau default ke basic
+const activePlan = new URLSearchParams(location.search).get('plan') || 'basic';
+selectPlan(activePlan);
 
 setPeriod('monthly');
 </script>
