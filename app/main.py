@@ -16,7 +16,7 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -122,6 +122,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_to_json(request, exc):
+    # Starlette default 500 = plain-text "Internal Server Error" yang
+    # memecahkan res.json() di frontend ("Unexpected token 'I'...").
+    # Kembalikan JSON agar frontend selalu dapat pesan terstruktur.
+    logger.exception("unhandled %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -449,6 +458,7 @@ async def transcribe_async(
     """Submit transcription job to Celery queue."""
     if celery_app is None:
         raise HTTPException(status_code=503, detail="Antrian async tidak tersedia di deployment ini (tanpa Redis/Celery)")
+    remaining = None
     # Check credits (1 credit per transcribe)
     if user:
         success, remaining = deduct_credits(user, 1)
@@ -464,7 +474,7 @@ async def transcribe_async(
     job_store[task.id] = {"status": "PENDING", "type": "transcribe", "filename": file.filename}
     if user:
         log_activity(user, 'transcribe_async', f'file:{file.filename or "audio.wav"}')
-    return {"status": "success", "task_id": task.id, "message": "Job queued", "credits_remaining": remaining}
+    return {"status": "success", "task_id": task.id, "message": "Job queued", "credits_remaining": remaining if user else None}
 
 
 @app.post("/api/v1/transcribe-batch-async")
@@ -476,6 +486,7 @@ async def transcribe_batch_async(
     """Submit batch transcription job to Celery queue."""
     if celery_app is None:
         raise HTTPException(status_code=503, detail="Antrian async tidak tersedia di deployment ini (tanpa Redis/Celery)")
+    remaining = None
     if len(files) > 20:
         raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
     # Check credits (1 credit per file)
