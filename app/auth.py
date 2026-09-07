@@ -30,7 +30,7 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
-SECRET = os.getenv("JWT_SECRET", "dev-secret-ganti-di-produksi")
+SECRET = os.getenv("JWT_SECRET") or "dev-secret-ganti-di-produksi"
 ALGO = "HS256"
 EXP_HOURS = _env_int("JWT_EXP_HOURS", 12)
 RESET_EXP_SEC = 30 * 60
@@ -150,8 +150,8 @@ def _hash(password: str, salt: str) -> str:
 
 
 def ensure_admin():
-    user = os.getenv("ADMIN_USER", "admin")
-    pwd = os.getenv("ADMIN_PASS", "admin")
+    user = os.getenv("ADMIN_USER") or "admin"
+    pwd = os.getenv("ADMIN_PASS") or "admin"
     with _session() as s:
         existing = s.get(User, user)
         if existing is None:
