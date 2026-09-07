@@ -38,8 +38,21 @@ def database_url() -> str:
     legacy = os.getenv("STT_DB", "").strip()
     if legacy and not legacy.startswith("sqlite"):
         return f"sqlite:///{legacy}"
-    path = Path(legacy) if legacy else BASE_DIR / "data" / "stt.db"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    if Path(legacy).is_absolute() if legacy else False:
+        path = Path(legacy)
+    elif os.getenv("VERCEL"):
+        # Vercel serverless: filesystem read-only kecuali /tmp
+        path = Path("/tmp/data/stt.db")
+    else:
+        path = Path(legacy) if legacy else BASE_DIR / "data" / "stt.db"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        path = Path("/tmp/data/stt.db")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
     return f"sqlite:///{path}"
 
 

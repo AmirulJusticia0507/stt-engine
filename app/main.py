@@ -65,7 +65,10 @@ from app.utils import normalize_to_wav_16k, save_upload_to_temp
 # Job status storage (in production, use Redis)
 job_store: dict[str, dict] = {}
 
-ensure_admin()
+try:
+    ensure_admin()
+except Exception as e:  # jangan bunuh function saat DB read-only (Vercel)
+    logger.warning("ensure_admin gagal saat startup: %s", e)
 bearer = HTTPBearer(auto_error=False)
 
 
