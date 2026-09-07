@@ -8,200 +8,280 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    #sidebar { transition: width 0.25s cubic-bezier(.4,0,.2,1); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    .plan-card { position: relative; overflow: hidden; }
+    .plan-card.popular::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
 <div class="flex min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+  <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
-      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
-        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
-        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      <a href="dashboard.html" class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
+          <img src="assets/logo.png" alt="Logo" class="w-5 h-5 object-contain" onerror="this.style.display='none'" />
+        </div>
+        <span class="lbl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
       </a>
-      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+      <button id="collapseBtn" class="ml-2 flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
     </div>
-    <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
-      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
-      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
-      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
-      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="billing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Riwayat</span></a>
-      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
+      <p class="lbl px-2 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Menu</p>
+      <a href="dashboard.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="lbl font-medium">Dashboard</span>
+      </a>
+      <a href="transcribe.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+        <span class="lbl font-medium">Transcribe</span>
+      </a>
+      <a href="model.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+        <span class="lbl font-medium">Model</span>
+      </a>
+      <a href="history.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="lbl font-medium">Riwayat</span>
+      </a>
+      <a href="audit.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="lbl font-medium">Audit Log</span>
+      </a>
+      <div class="lbl pt-3 pb-1"><p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Akun</p></div>
+      <a href="pricing.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/80 text-white shadow-md shadow-indigo-900/40">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span class="lbl font-medium">Langganan</span>
+      </a>
+      <a href="settings.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl font-medium">Pengaturan</span>
+      </a>
+      <a href="users.html" class="admin-only group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all hidden">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="lbl font-medium">Manajemen User</span>
+      </a>
     </nav>
-    <div class="flex-1"></div>
-    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+    <div class="border-t border-slate-800/60 p-3">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/50 transition cursor-default">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0" id="avatarInitial">U</div>
+        <div class="lbl min-w-0">
+          <p class="text-xs text-slate-400">Login sebagai</p>
+          <p class="text-sm font-semibold text-white truncate" id="who"></p>
+        </div>
+      </div>
+    </div>
   </aside>
 
   <!-- MAIN -->
-  <div class="flex-1 flex flex-col min-w-0">
-
-    <!-- HEADER -->
-    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
-      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Langganan</h1>
-      <div class="flex-1"></div>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
-        <span class="theme-icon">🌙</span>
-        <span class="theme-text hidden sm:inline">Gelap</span>
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-5 py-3.5 flex items-center gap-3">
+      <button id="mobileBtn" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+      <div>
+        <h1 class="font-semibold text-slate-800 dark:text-white text-sm">Pilih Paket Langganan</h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Pilih paket yang sesuai kebutuhan Anda</p>
+      </div>
+      <div class="flex-1"></div>
+      <!-- Billing history link -->
+      <a href="billing.html" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Riwayat Pembayaran
+      </a>
+      <button onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
+        <span class="theme-icon">🌙</span><span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button onclick="Auth.logout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-medium transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="hidden sm:inline">Keluar</span>
+      </button>
     </header>
 
-    <!-- CONTENT -->
-    <main class="p-4 md:p-6 max-w-3xl w-full mx-auto">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Pilih Paket Bulanan/Tahunan</h2>
-
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Pilih paket yang sesuai kebutuhan Anda. Paket Free adalah coba gratis, Basic untuk penggunaan harian, dan Pro untuk kebutuhan profesional.</p>
-
-        <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-
-          <!-- Free Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="font-semibold text-slate-800 dark:text-white">Free</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Paket gratis</p>
-              </div>
-              <span class="text-2xl font-bold text-indigo-600">Rp0</span>
-            </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8zM9 10a5 5 0 01-4-4H5a5 5 0 015-5h2a5 5 0 015 4h2a5 5 0 015 4h2a5 5 0 01-4 4h-2z"/>
-                </svg>
-                <span class="ml-2">10 transkripsi/bln</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8zM9 10a5 5 0 01-4-4H5a5 5 0 015-5h2a5 5 0 015 4h2a5 5 0 01-4 4h-2z"/>
-                </svg>
-                <span class="ml-2">Export TXT / SRT / VTT</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Riwayat transkrip</span>
-              </li>
-            </ul>
-            <button class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=free&period=monthly'">
-              Daftar Gratis
-            </button>
-          </div>
-
-          <!-- Basic Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="font-semibold text-slate-800 dark:text-white">Basic</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Paket dasar</p>
-              </div>
-              <span class="text-2xl font-bold text-indigo-600">Rp49.000/bln</span>
-            </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">300 transkripsi/bln</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Transcribe batch (hingga 20 file)</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Ekspor TXT / SRT / VTT</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Antrean async prioritas</span>
-              </li>
-            </ul>
-            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=basic&period=monthly'">
-              Daftar Basic
-            </button>
-          </div>
-
-          <!-- Pro Card -->
-          <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200/20 dark:border-slate-700/50 rounded-xl p-6 transition">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h3 class="font-semibold text-slate-800 dark:text-white">Pro</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Paket profesional</p>
-              </div>
-              <span class="text-2xl font-bold text-indigo-600">Rp149.000/bln<br><span class="text-sm text-slate-500 dark:text-slate-400">Rp1.490.000/tahun</span></span>
-            </div>
-            <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300 space-y-1">
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Transkripsi tanpa limit</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Semua fitur termasuk async + batch</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Model besar (large-v3-turbo)</span>
-              </li>
-              <li class="flex items-start">
-                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300 flex-shrink-0 flex items-center shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a7 7 0 100-14 7 7 0 000 14zm-7-4a4 4 0 000-8 4 4 0 000 8z"/>
-                </svg>
-                <span class="ml-2">Prioritas antrean</span>
-              </li>
-            </ul>
-            <button class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=pro&period=monthly'">
-              Daftar Bulanan
-            </button>
-            <button class="w-full mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2.5 px-4 transition" onclick="window.location.href='/checkout?plan=pro&period=yearly'">
-              Daftar Tahunan
-            </button>
-          </div>
-
+    <main class="flex-1 overflow-y-auto p-5 md:p-7">
+      <!-- Hero -->
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Pilih Paket yang Tepat</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">Mulai gratis, upgrade kapan saja. Semua paket dilengkapi jaminan uang kembali 7 hari.</p>
+        <!-- Toggle billing period -->
+        <div class="inline-flex items-center gap-1 mt-4 bg-slate-200 dark:bg-slate-800 rounded-xl p-1">
+          <button id="btnMonthly" onclick="setPeriod('monthly')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">Bulanan</button>
+          <button id="btnYearly"  onclick="setPeriod('yearly')"  class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400">Tahunan <span class="text-emerald-500">-17%</span></button>
         </div>
-
-        <div class="mt-6 pt-6 border-t border-slate-200/20 dark:border-slate-700/50 text-center text-sm text-slate-500 dark:text-slate-400">
-          <p>Semua paket memiliki <strong>jaminan uang kembali 7 hari</strong> untuk pelanggan baru.</p>
-          <p>Setelah berakhir masa trial/coba, langganan akan secara otomatis diperbarui setiap <strong>bulan</strong> atau <strong>tahun</strong> sesuai pilihan.</p>
-        </div>
-
       </div>
+
+      <!-- Plan cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+
+        <!-- Free -->
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col">
+          <div class="mb-5">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Free</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Coba tanpa kartu kredit</p>
+          </div>
+          <div class="mb-5">
+            <span class="text-3xl font-extrabold text-slate-900 dark:text-white">Rp0</span>
+            <span class="text-sm text-slate-400">/bulan</span>
+          </div>
+          <ul class="space-y-2.5 mb-6 flex-1">
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>10 transkripsi/bulan</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Riwayat transkrip</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Batch upload</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Antrean prioritas</li>
+          </ul>
+          <button onclick="checkout('free')" class="w-full py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">Mulai Gratis</button>
+        </div>
+
+        <!-- Basic (popular) -->
+        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 flex flex-col relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-bold shadow-lg shadow-indigo-900/30">POPULER</span>
+          </div>
+          <div class="mb-5">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Basic</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Untuk penggunaan harian</p>
+          </div>
+          <div class="mb-5">
+            <span class="text-3xl font-extrabold text-slate-900 dark:text-white" id="basicPrice">Rp49.000</span>
+            <span class="text-sm text-slate-400" id="basicPeriod">/bulan</span>
+          </div>
+          <ul class="space-y-2.5 mb-6 flex-1">
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>300 transkripsi/bulan</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Batch upload (maks 20 file)</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Antrean async prioritas</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Model large-v3-turbo</li>
+          </ul>
+          <button onclick="checkout('basic')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-900/30 transition">Pilih Basic</button>
+        </div>
+
+        <!-- Pro -->
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col">
+          <div class="mb-5">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pro</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Untuk kebutuhan profesional</p>
+          </div>
+          <div class="mb-1">
+            <span class="text-3xl font-extrabold text-slate-900 dark:text-white" id="proPrice">Rp149.000</span>
+            <span class="text-sm text-slate-400" id="proPeriod">/bulan</span>
+          </div>
+          <p class="text-xs text-emerald-500 mb-4" id="proSavings"></p>
+          <ul class="space-y-2.5 mb-6 flex-1">
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Transkripsi tanpa limit</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Semua fitur Basic + async</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Model large-v3-turbo</li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Prioritas antrean tertinggi</li>
+          </ul>
+          <button onclick="checkout('pro')" class="w-full py-2.5 rounded-xl border-2 border-violet-500/50 text-violet-500 font-semibold text-sm hover:bg-violet-500/10 transition">Pilih Pro</button>
+        </div>
+      </div>
+
+      <!-- Guarantee note -->
+      <p class="text-center text-xs text-slate-400 mt-8">🛡️ Jaminan uang kembali 7 hari · Tidak ada komitmen jangka panjang · Batalkan kapan saja</p>
     </main>
+
+    <footer class="px-7 py-4 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+      <span>STT Engine · FastAPI + Faster-Whisper</span>
+      <span id="footUser"></span>
+    </footer>
   </div>
 </div>
 
 <script src="assets/auth.js"></script>
 <script>
-document.getElementById('who').textContent = Auth.user;
+if (!Auth.requireAuth()) throw new Error('redirect');
+const username = Auth.user;
+document.getElementById('who').textContent = username;
+document.getElementById('footUser').textContent = username;
+document.getElementById('avatarInitial').textContent = (username || 'U').charAt(0).toUpperCase();
 
-// Smooth highlight pada card aktif berdasarkan URL params
-const urlParams = new URLSearchParams(window.location.search);
-const activePlan = urlParams.get('plan');
-const cards = document.querySelectorAll('#plansGrid > div');
-cards.forEach(card => {
-  const code = card.querySelector('h3') ? card.querySelector('h3').innerText.replace(/[^a-zA-Z]/g, '').toLowerCase() : '';
-  if (activePlan && activePlan === code) {
-    card.style.border = '2px solid #10b981';
-    card.style.boxShadow = '0 0 0 2px #10b98120';
-  }
-});
+const sb = document.getElementById('sidebar');
+function setCollapsed(c) {
+  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.classList.toggle('hidden', c));
+  localStorage.setItem('sb_collapsed', c ? '1' : '0');
+}
+document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
+document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
+if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
+
+async function checkAdminRole() {
+  try {
+    const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
+    if (r.ok) {
+      const j = await r.json();
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !(j.username === 'admin' || j.role === 'admin')));
+    }
+  } catch {}
+}
+checkAdminRole();
+
+let currentPeriod = 'monthly';
+const PRICES = {
+  basic:  { monthly: 'Rp49.000',  yearly: 'Rp490.000' },
+  pro:    { monthly: 'Rp149.000', yearly: 'Rp1.490.000' },
+};
+
+function setPeriod(p) {
+  currentPeriod = p;
+  const isYearly = p === 'yearly';
+  document.getElementById('btnMonthly').className = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${!isYearly ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
+  document.getElementById('btnYearly').className  = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${isYearly  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
+  document.getElementById('basicPrice').textContent = PRICES.basic[p];
+  document.getElementById('basicPeriod').textContent = isYearly ? '/tahun' : '/bulan';
+  document.getElementById('proPrice').textContent   = PRICES.pro[p];
+  document.getElementById('proPeriod').textContent  = isYearly ? '/tahun' : '/bulan';
+  document.getElementById('proSavings').textContent = isYearly ? 'Hemat Rp298.000 vs bulanan' : '';
+}
+
+function checkout(plan) {
+  window.location.href = `/checkout?plan=${plan}&period=${currentPeriod}`;
+}
+
+// Highlight active plan from URL
+const activePlan = new URLSearchParams(location.search).get('plan');
+if (activePlan) {
+  document.querySelectorAll('.plan-card').forEach(card => {
+    const h3 = card.querySelector('h3');
+    if (h3 && h3.textContent.toLowerCase() === activePlan.toLowerCase()) {
+      card.style.boxShadow = '0 0 0 2px #6366f1, 0 8px 32px rgba(99,102,241,0.15)';
+    }
+  });
+}
+
+setPeriod('monthly');
 </script>
 </body>
 </html>

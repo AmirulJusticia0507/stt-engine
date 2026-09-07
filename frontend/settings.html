@@ -8,144 +8,366 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    #sidebar { transition: width 0.25s cubic-bezier(.4,0,.2,1); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+  </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
 <div class="flex min-h-screen">
-  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
-      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
-        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
-        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      <a href="dashboard.html" class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
+          <img src="assets/logo.png" alt="Logo" class="w-5 h-5 object-contain" onerror="this.style.display='none'" />
+        </div>
+        <span class="lbl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
       </a>
-      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+      <button id="collapseBtn" class="ml-2 flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
     </div>
-    <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
-      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
-      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
-      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
-      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="settings.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">⚙️ <span class="lbl">Pengaturan</span></a>
-      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg hover:bg-slate-800 hidden">👥 <span class="lbl">Manajemen User</span></a>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
+      <p class="lbl px-2 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Menu</p>
+      <a href="dashboard.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="lbl font-medium">Dashboard</span>
+      </a>
+      <a href="transcribe.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+        <span class="lbl font-medium">Transcribe</span>
+      </a>
+      <a href="model.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+        <span class="lbl font-medium">Model</span>
+      </a>
+      <a href="history.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="lbl font-medium">Riwayat</span>
+      </a>
+      <a href="audit.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="lbl font-medium">Audit Log</span>
+      </a>
+      <div class="lbl pt-3 pb-1"><p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Akun</p></div>
+      <a href="pricing.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span class="lbl font-medium">Langganan</span>
+      </a>
+      <a href="settings.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/80 text-white shadow-md shadow-indigo-900/40">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl font-medium">Pengaturan</span>
+      </a>
+      <a href="users.html" class="admin-only group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all hidden">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="lbl font-medium">Manajemen User</span>
+      </a>
     </nav>
-    <div class="flex-1"></div>
-    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+    <div class="border-t border-slate-800/60 p-3">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/50 transition cursor-default">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0" id="avatarInitial">U</div>
+        <div class="lbl min-w-0">
+          <p class="text-xs text-slate-400">Login sebagai</p>
+          <p class="text-sm font-semibold text-white truncate" id="who"></p>
+        </div>
+      </div>
+    </div>
   </aside>
 
-  <div class="flex-1 flex flex-col min-w-0">
-    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
-      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Pengaturan</h1>
-      <div class="flex-1"></div>
-      <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
-        <span class="theme-icon">🌙</span>
-        <span class="theme-text hidden sm:inline">Gelap</span>
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-5 py-3.5 flex items-center gap-3">
+      <button id="mobileBtn" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+      <div>
+        <h1 class="font-semibold text-slate-800 dark:text-white text-sm">Pengaturan</h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Konfigurasi tampilan dan koneksi API</p>
+      </div>
+      <div class="flex-1"></div>
+      <button onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
+        <span class="theme-icon">🌙</span><span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button onclick="Auth.logout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-medium transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="hidden sm:inline">Keluar</span>
+      </button>
     </header>
 
-    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto space-y-4">
-      <!-- TEMA & TAMPILAN -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
-        <h2 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">🎨 Tampilan Dashboard</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Pilih mode tampilan favorit Anda untuk semua halaman dan card.</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
-          <button id="btnLight" class="p-4 rounded-xl border text-left transition flex items-center justify-between">
-            <div>
-              <div class="font-semibold text-sm">☀️ Mode Terang</div>
-              <div class="text-xs text-slate-500">Tampilan latar putih bersih</div>
+    <main class="flex-1 overflow-y-auto p-5 md:p-7 space-y-5 max-w-2xl">
+
+      <!-- Appearance -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-900 dark:text-white text-sm">Tampilan</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Pilih mode terang atau gelap</p>
+          </div>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Light -->
+            <button id="btnLight" onclick="setTheme('light')"
+              class="relative group flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all">
+              <div class="w-full h-20 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex flex-col">
+                <div class="h-4 bg-white border-b border-slate-200 flex items-center px-2 gap-1">
+                  <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                  <div class="w-8 h-1.5 rounded bg-slate-200"></div>
+                </div>
+                <div class="flex flex-1 p-1.5 gap-1.5">
+                  <div class="w-8 bg-slate-200 rounded-md"></div>
+                  <div class="flex-1 space-y-1">
+                    <div class="h-2 bg-slate-200 rounded"></div>
+                    <div class="h-2 bg-slate-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-indigo-100 rounded mt-1"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mode Terang</span>
+              </div>
+              <div id="lightCheck" class="absolute top-3 right-3 w-5 h-5 rounded-full hidden items-center justify-center bg-indigo-600">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+            </button>
+
+            <!-- Dark -->
+            <button id="btnDark" onclick="setTheme('dark')"
+              class="relative group flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all">
+              <div class="w-full h-20 rounded-lg bg-[#0d1117] border border-slate-700 overflow-hidden flex flex-col">
+                <div class="h-4 bg-[#161b22] border-b border-slate-700/60 flex items-center px-2 gap-1">
+                  <div class="w-2 h-2 rounded-full bg-slate-600"></div>
+                  <div class="w-8 h-1.5 rounded bg-slate-700"></div>
+                </div>
+                <div class="flex flex-1 p-1.5 gap-1.5">
+                  <div class="w-8 bg-slate-800 rounded-md"></div>
+                  <div class="flex-1 space-y-1">
+                    <div class="h-2 bg-slate-700 rounded"></div>
+                    <div class="h-2 bg-slate-700 rounded w-3/4"></div>
+                    <div class="h-4 bg-indigo-900/60 rounded mt-1"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mode Gelap</span>
+              </div>
+              <div id="darkCheck" class="absolute top-3 right-3 w-5 h-5 rounded-full hidden items-center justify-center bg-indigo-600">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Connection -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-900 dark:text-white text-sm">Koneksi API</h2>
+            <p class="text-xs text-slate-400 mt-0.5">URL backend untuk semua request</p>
+          </div>
+          <div class="ml-auto flex items-center gap-1.5" id="apiStatusBadge">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-500" id="apiStatusDot"></span>
+            <span class="text-xs text-slate-400" id="apiStatusText">—</span>
+          </div>
+        </div>
+        <div class="p-5 space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Base URL API</label>
+            <div class="flex gap-2">
+              <input id="apiBaseInput" type="text" placeholder="https://your-api-server.com"
+                class="flex-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+              <button id="testApiBtn" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition whitespace-nowrap">
+                Test
+              </button>
             </div>
-            <span class="text-xl">⚪</span>
-          </button>
-          <button id="btnDark" class="p-4 rounded-xl border text-left transition flex items-center justify-between">
-            <div>
-              <div class="font-semibold text-sm">🌙 Mode Gelap</div>
-              <div class="text-xs text-slate-500">Tampilan gelap yang nyaman</div>
-            </div>
-            <span class="text-xl">🌙</span>
+          </div>
+          <button id="saveApiBtn" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl px-5 py-2.5 shadow-md shadow-indigo-900/30 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Simpan Pengaturan
           </button>
         </div>
       </div>
 
-      <!-- KONEKSI & SYSTEM -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
-        <h2 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">🌐 API & Server</h2>
-        <div class="space-y-3 max-w-md">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Base URL API</label>
-            <input id="apiBaseInput" type="text" class="mt-1 w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+      <!-- Account info -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
           </div>
-          <button id="saveApiBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Simpan Pengaturan</button>
+          <div>
+            <h2 class="font-semibold text-slate-900 dark:text-white text-sm">Akun</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Info sesi login aktif</p>
+          </div>
+        </div>
+        <div class="p-5">
+          <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shrink-0" id="accountAvatar">U</div>
+            <div class="min-w-0">
+              <p class="font-semibold text-slate-900 dark:text-white" id="accountUser"></p>
+              <p class="text-xs text-slate-400 mt-0.5">Sesi aktif · <span id="accountApiBase" class="font-mono"></span></p>
+            </div>
+            <button onclick="Auth.logout()" class="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-semibold transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              Keluar
+            </button>
+          </div>
         </div>
       </div>
+
+      <!-- Danger zone -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-rose-200/50 dark:border-rose-900/30 overflow-hidden">
+        <div class="px-5 py-4 border-b border-rose-100 dark:border-rose-900/30 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div>
+            <h2 class="font-semibold text-rose-600 dark:text-rose-400 text-sm">Zona Berbahaya</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
+          </div>
+        </div>
+        <div class="p-5 space-y-3">
+          <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+            <div>
+              <p class="text-sm font-medium text-slate-800 dark:text-slate-200">Hapus Riwayat Lokal</p>
+              <p class="text-xs text-slate-400 mt-0.5">Hapus semua data transkripsi dari localStorage</p>
+            </div>
+            <button id="clearHistBtn" class="px-3 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-semibold transition whitespace-nowrap">
+              Hapus
+            </button>
+          </div>
+          <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+            <div>
+              <p class="text-sm font-medium text-slate-800 dark:text-slate-200">Logout dari Semua Sesi</p>
+              <p class="text-xs text-slate-400 mt-0.5">Hapus token dan redirect ke halaman login</p>
+            </div>
+            <button onclick="Auth.logout()" class="px-3 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-semibold transition whitespace-nowrap">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
     </main>
 
-    <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
+    <footer class="px-7 py-4 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+      <span>STT Engine · FastAPI + Faster-Whisper</span>
+      <span id="footUser"></span>
+    </footer>
   </div>
 </div>
 
 <script src="assets/auth.js"></script>
 <script>
 if (!Auth.requireAuth()) throw new Error('redirect');
-document.getElementById('who').textContent = Auth.user;
-document.getElementById('footUser').textContent = Auth.user;
+const username = Auth.user;
+document.getElementById('who').textContent = username;
+document.getElementById('footUser').textContent = username;
+document.getElementById('avatarInitial').textContent = (username || 'U').charAt(0).toUpperCase();
+document.getElementById('accountUser').textContent = username;
+document.getElementById('accountAvatar').textContent = (username || 'U').charAt(0).toUpperCase();
+document.getElementById('accountApiBase').textContent = Auth.apiBase;
+document.getElementById('apiBaseInput').value = Auth.apiBase;
 
 const sb = document.getElementById('sidebar');
 function setCollapsed(c) {
   sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
-  document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.classList.toggle('hidden', c));
   localStorage.setItem('sb_collapsed', c ? '1' : '0');
 }
 document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
 document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
 if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
-fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
-  document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
-}).catch(() => document.getElementById('health').textContent = 'backend unreachable');
-
-document.getElementById('apiBaseInput').value = Auth.apiBase;
-document.getElementById('saveApiBtn').onclick = () => {
-  const val = document.getElementById('apiBaseInput').value.trim();
-  if (val) localStorage.setItem('apiBase', val);
-  else localStorage.removeItem('apiBase');
-  UI.ok('Pengaturan API disimpan');
-};
-
-function updateThemeOptionActive() {
-  const isDark = Theme.isDark;
-  const lightBtn = document.getElementById('btnLight');
-  const darkBtn = document.getElementById('btnDark');
-  
-  lightBtn.className = `p-4 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${!isDark ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700'}`;
-  darkBtn.className = `p-4 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${isDark ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700'}`;
-}
-
-document.getElementById('btnLight').onclick = () => {
-  localStorage.setItem(Theme.KEY, 'light');
-  Theme.apply();
-  updateThemeOptionActive();
-};
-document.getElementById('btnDark').onclick = () => {
-  localStorage.setItem(Theme.KEY, 'dark');
-  Theme.apply();
-  updateThemeOptionActive();
-};
-
-updateThemeOptionActive();
-
 async function checkAdminRole() {
   try {
     const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
     if (r.ok) {
       const j = await r.json();
-      const isAdmin = j.username === 'admin' || j.role === 'admin';
-      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin));
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !(j.username === 'admin' || j.role === 'admin')));
     }
   } catch {}
 }
 checkAdminRole();
+
+// Theme UI
+function updateThemeUI() {
+  const isDark = Theme.isDark;
+  const lightBtn = document.getElementById('btnLight');
+  const darkBtn  = document.getElementById('btnDark');
+  const lightCheck = document.getElementById('lightCheck');
+  const darkCheck  = document.getElementById('darkCheck');
+  lightBtn.className = `relative group flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${!isDark ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`;
+  darkBtn.className  = `relative group flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${isDark  ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`;
+  lightCheck.classList.toggle('hidden', isDark);
+  lightCheck.classList.toggle('flex', !isDark);
+  darkCheck.classList.toggle('hidden', !isDark);
+  darkCheck.classList.toggle('flex', isDark);
+}
+
+function setTheme(mode) {
+  localStorage.setItem(Theme.KEY, mode);
+  Theme.apply();
+  updateThemeUI();
+}
+
+updateThemeUI();
+
+// API test
+document.getElementById('testApiBtn').onclick = async () => {
+  const url = document.getElementById('apiBaseInput').value.trim();
+  const dot = document.getElementById('apiStatusDot');
+  const txt = document.getElementById('apiStatusText');
+  txt.textContent = 'Testing...';
+  dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse';
+  try {
+    const r = await fetch(url + '/health', { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const j = await r.json();
+      dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+      txt.textContent = 'Online · ' + (j.model || '?');
+      txt.className = 'text-xs text-emerald-500';
+    } else throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
+    txt.textContent = 'Offline';
+    txt.className = 'text-xs text-rose-500';
+  }
+};
+
+// Save API
+document.getElementById('saveApiBtn').onclick = () => {
+  const val = document.getElementById('apiBaseInput').value.trim();
+  if (val) localStorage.setItem('apiBase', val);
+  else localStorage.removeItem('apiBase');
+  document.getElementById('accountApiBase').textContent = val || location.origin;
+  UI.ok('Pengaturan API disimpan!');
+};
+
+// Clear history
+document.getElementById('clearHistBtn').onclick = async () => {
+  if (!await UI.confirm('Hapus semua riwayat lokal? Data ini tidak dapat dipulihkan.')) return;
+  localStorage.removeItem('stt_history');
+  UI.ok('Riwayat lokal dihapus');
+};
+
+// Initial API status check
+document.getElementById('testApiBtn').click();
 </script>
 </body>
 </html>
