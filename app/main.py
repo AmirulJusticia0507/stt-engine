@@ -55,7 +55,10 @@ from app.auth import (
 from app.auth import (
     is_postgres as auth_db_is_postgres,
 )
-from app.celery_app import celery_app
+try:
+    from app.celery_app import celery_app
+except ImportError:  # Vercel lite deploy tanpa Redis/Celery
+    celery_app = None
 from app.stt_engine import stt_service
 from app.utils import normalize_to_wav_16k, save_upload_to_temp
 
@@ -441,6 +444,8 @@ async def transcribe_async(
     user: str | None = Depends(current_user),
 ):
     """Submit transcription job to Celery queue."""
+    if celery_app is None:
+        raise HTTPException(status_code=503, detail="Antrian async tidak tersedia di deployment ini (tanpa Redis/Celery)")
     # Check credits (1 credit per transcribe)
     if user:
         success, remaining = deduct_credits(user, 1)
@@ -466,6 +471,8 @@ async def transcribe_batch_async(
     user: str | None = Depends(current_user),
 ):
     """Submit batch transcription job to Celery queue."""
+    if celery_app is None:
+        raise HTTPException(status_code=503, detail="Antrian async tidak tersedia di deployment ini (tanpa Redis/Celery)")
     if len(files) > 20:
         raise HTTPException(status_code=400, detail="Maksimal 20 file per batch")
     # Check credits (1 credit per file)
@@ -498,6 +505,8 @@ def get_job_status(task_id: str, user: str | None = Depends(current_user)):
     """Get Celery job status."""
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
+    if celery_app is None:
+        raise HTTPException(status_code=503, detail="Antrian async tidak tersedia di deployment ini (tanpa Redis/Celery)")
 
     # Check local store first
     if task_id in job_store:
