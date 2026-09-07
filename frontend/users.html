@@ -10,7 +10,10 @@
   <script src="assets/theme.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
 <div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
   <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
       <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
@@ -20,19 +23,22 @@
       <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
     </div>
     <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📊 <span class="lbl">Dashboard</span></a>
+      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
       <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
       <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
       <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
       <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="settings.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">⚙️ <span class="lbl">Pengaturan</span></a>
+      <a href="pricing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
       <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg bg-slate-800 text-white">👥 <span class="lbl">Manajemen User</span></a>
     </nav>
     <div class="flex-1"></div>
     <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
   </aside>
 
+  <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- HEADER -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
       <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
       <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Manajemen User</h1>
@@ -45,52 +51,99 @@
       <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
     </header>
 
+    <!-- CONTENT -->
     <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+
+      <!-- STATS CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
+          <div class="flex items-start">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="totalUsers">0</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-slate-500 dark:text-slate-400">Total User</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="totalUsersCount">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
+          <div class="flex items-start">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="activeUsers">0</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-slate-500 dark:text-slate-400">Aktif</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="activeUsersCount">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
+          <div class="flex items-start">
+            <div class="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900 flex items-center justify-center flex-shrink-0">
+              <span class="text-2xl font-bold text-violet-600 dark:text-violet-400" id="planFree">0</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-slate-500 dark:text-slate-400">Paket Free</p>
+              <p class="font-medium text-slate-800 dark:text-white" id="planFreeCount">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USER TABLE -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
         <div class="flex items-center gap-2 mb-3">
-          <h2 class="font-semibold text-slate-900 dark:text-white">Manajemen User</h2>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Daftar User</h2>
           <div class="flex-1"></div>
           <button id="userRefreshBtn" class="text-sm border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg px-3 py-1.5 transition">Muat ulang</button>
         </div>
-        <div class="mb-4 flex flex-col sm:flex-row gap-2">
-          <input id="newUserName" type="text" placeholder="Username baru" class="w-full sm:w-auto border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-          <input id="newUserPass" type="password" placeholder="Password" class="w-full sm:w-auto border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-          <select id="newUserRole" class="w-full sm:w-auto border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm outline-none">
-            <option value="user">user</option>
-            <option value="admin">admin</option>
-          </select>
-          <button id="createUserBtn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg px-4 py-2 shadow-sm transition">Tambah User</button>
+        <div class="overflow-auto">
+          <table class="w-full text-sm text-slate-800 dark:text-slate-200">
+            <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <th class="py-2">Username</th>
+              <th class="py-2">Role</th>
+              <th class="py-2">Paket</th>
+              <th class="py-2">Kredit</th>
+              <th class="py-2 text-right">Aksi</th>
+            </tr></thead>
+            <tbody id="userBody">
+            </tbody>
+          </table>
         </div>
-        <div class="overflow-auto"><table class="w-full text-sm text-slate-800 dark:text-slate-200">
-          <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800"><th class="py-2">Username</th><th>Role</th><th>Kredit</th><th>Aksi</th></tr></thead>
-          <tbody id="userBody"></tbody>
-        </table></div>
       </div>
-    </main>
 
-    <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-4">STT Engine · FastAPI + Faster-Whisper · <span id="footUser"></span></footer>
+      <!-- BILLING SUMMARY -->
+      <div id="billingSection" class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-6 hidden">
+        <h3 class="font-semibold text-slate-900 dark:text-white mb-3">Ringkasan Pembayaran</h3>
+        <div class="space-y-3 text-sm">
+          <div>
+            <span class="font-medium text-slate-700 dark:text-slate-300">Total Pembayaran:</span>
+            <span id="totalPayments" class="font-bold text-indigo-600 dark:text-indigo-400">Rp0</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700 dark:text-slate-300">Berlangganan Aktif:</span>
+            <span id="activeSubs" class="font-bold text-emerald-600 dark:text-emerald-400">0</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700 dark:text-slate-300">Rata-rata kuota:</span>
+            <span id="avgQuota" class="font-bold text-violet-600 dark:text-violet-400">0</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 </div>
 
 <script src="assets/auth.js"></script>
 <script>
-if (!Auth.requireAuth()) throw new Error('redirect');
 document.getElementById('who').textContent = Auth.user;
 document.getElementById('footUser').textContent = Auth.user;
 
-const sb = document.getElementById('sidebar');
-function setCollapsed(c) {
-  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
-  document.querySelectorAll('#sidebar .lbl').forEach(e => e.style.display = c ? 'none' : '');
-  localStorage.setItem('sb_collapsed', c ? '1' : '0');
-}
-document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
-document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
-if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
-
-fetch(Auth.apiBase + '/health').then(r => r.json()).then(j => {
-  document.getElementById('health').textContent = (j.model || '-') + ' · ' + (j.device || '-');
-}).catch(() => document.getElementById('health').textContent = 'backend unreachable');
+// Initialize stats
+let totalUsers = 0, activeUsers = 0, planFreeCount = 0;
+let totalPayments = 0, activeSubs = 0, avgQuota = 0;
 
 async function loadUsers() {
   const body = document.getElementById('userBody');
@@ -99,142 +152,82 @@ async function loadUsers() {
     if (!r.ok) throw new Error('Gagal memuat user');
     const j = await r.json();
     const rows = j.users || [];
+    totalUsers = rows.length;
+    
+    // Count stats
+    activeUsers = rows.filter(u => u.status === 'active' || u.status === 'active').length;
+    planFreeCount = rows.filter(u => (u.plan || 'Free') === 'Free').length;
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('activeUsersCount').textContent = activeUsers;
+    document.getElementById('planFreeCount').textContent = planFreeCount;
+    
+    // Build table rows
     const btnClass = "text-xs border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded px-1.5 py-0.5 mr-1 transition";
-    body.innerHTML = rows.map(u => `<tr class="border-t border-slate-200 dark:border-slate-800/80"><td class="py-2 font-medium">${u.username}</td><td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}">${u.role}</span></td><td class="py-2"><span class="font-mono text-indigo-600 dark:text-indigo-400">${u.credits || 0}</span></td><td class="py-2 font-medium text-slate-700 capitalize">${u.plan || 'Free'}</td><td class="py-2 whitespace-nowrap">${u.username !== 'admin' ? `<button class="${btnClass}" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button> <button class="text-xs border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="topupCredits('${u.username}')">+ Kredit</button> <button class="text-xs border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="deductCredits('${u.username}')">- Kredit</button> <button class="text-xs border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="setCredits('${u.username}')">Set Kredit</button> <button class="text-xs bg-rose-600 hover:bg-rose-700 text-white rounded px-2 py-1 transition" onclick="deleteUser('${u.username}')">Hapus</button>` : '<span class="text-xs text-slate-400 dark:text-slate-500">(admin utama)</span>'}</td><td class="py-2 font-medium text-slate-700 capitalize">${u.plan || 'Free'}</td></tr>`).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="5">Belum ada user.</td></tr>';
-  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-rose-500" colspan="4">Gagal memuat: ' + e.message + '</td></tr>'; }
-}
-document.getElementById('userRefreshBtn').onclick = loadUsers;
-
-document.getElementById('createUserBtn').onclick = async () => {
-  const username = document.getElementById('newUserName').value.trim();
-  const password = document.getElementById('newUserPass').value;
-  const role = document.getElementById('newUserRole').value;
-  if (!username || !password) return UI.err('Username dan password wajib diisi');
-  Swal.showLoading();
-  try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users`, {
-      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ username, password, role }),
-    });
-    const j = await r.json(); Swal.close();
-    if (!r.ok) throw new Error(j.detail || 'Gagal membuat user');
-    UI.ok('User ' + username + ' dibuat');
-    document.getElementById('newUserName').value = '';
-    document.getElementById('newUserPass').value = '';
-    loadUsers();
-  } catch (e) { Swal.close(); UI.err(e.message); }
-};
-
-async function changeRole(username, newRole) {
-  if (!await UI.confirm(`Ubah role ${username} menjadi ${newRole}?`)) return;
-  try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/role`, {
-      method: 'PATCH', headers: Auth.headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ role: newRole }),
-    });
-    if (!r.ok) throw new Error((await r.json()).detail || 'Gagal mengubah role');
-    UI.ok('Role ' + username + ' diubah ke ' + newRole);
-    loadUsers();
-  } catch (e) { UI.err(e.message); }
+    body.innerHTML = rows.map(u => {
+      const planBadge = `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${u.plan === 'Free' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300' : u.plan === 'Basic' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-violet-100 text-violet-600 dark:bg-violet-900 dark:text-violet-300'}">${u.plan || 'Free'}</span>`;
+      return `<tr class="border-t border-slate-200 dark:border-slate-800/80">
+        <td class="py-2 font-medium">${u.username}</td>
+        <td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}">${u.role}</span></td>
+        <td class="py-2">${planBadge}</td>
+        <td class="py-2"><span class="font-mono text-indigo-600 dark:text-indigo-400">${u.credits || 0}</span></td>
+        <td class="py-2 text-right">
+          ${u.username !== 'admin' ? `
+            <button class="${btnClass}" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button>
+            <button class="text-xs border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="topupCredits('${u.username}')">+ Kredit</button>
+            <button class="text-xs border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="deductCredits('${u.username}')">- Kredit</button>
+            <button class="text-xs border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="setCredits('${u.username}')">Set Kredit</button>
+            <button class="text-xs bg-rose-600 hover:bg-rose-700 text-white rounded px-2 py-1 transition" onclick="deleteUser('${u.username}')">Hapus</button>` : `<span class="text-xs text-slate-400 dark:text-slate-500">(admin utama)</span>`}
+          </td></tr>`;
+    }).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="5">Belum ada user.</td></tr>';
+    
+    // Load billing summary
+    await loadBillingSummary();
+  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-rose-500" colspan="5">Gagal memuat: ' + e.message + '</td></tr>'; }
 }
 
-async function deleteUser(username) {
-  if (!await UI.confirm(`Hapus user ${username}?`)) return;
+async function loadBillingSummary() {
   try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}`, {
-      method: 'DELETE', headers: Auth.headers(),
-    });
-    if (!r.ok) throw new Error((await r.json()).detail || 'Gagal menghapus user');
-    UI.ok('User ' + username + ' dihapus');
-    loadUsers();
-  } catch (e) { UI.err(e.message); }
-}
-
-async function topupCredits(username) {
-  const { value: amount } = await Swal.fire({
-    title: `Topup Kredit: ${username}`,
-    input: 'number',
-    inputLabel: 'Jumlah kredit',
-    inputPlaceholder: '10',
-    inputAttributes: { min: '1', step: '1' },
-    showCancelButton: true,
-    confirmButtonText: 'Topup',
-    cancelButtonText: 'Batal'
-  });
-  if (!amount) return;
-  try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/topup`, {
-      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ username, amount: parseInt(amount) }),
-    });
+    const r = await fetch(Auth.apiBase + '/api/v1/billing', { headers: Auth.headers() });
+    if (!r.ok) throw new Error('Gagal memuat riwayat pembayaran');
     const j = await r.json();
-    if (!r.ok) throw new Error(j.detail || 'Gagal topup kredit');
-    UI.ok(`Kredit ${username} ditambah ${amount}. Total: ${j.credits}`);
-    loadUsers();
-  } catch (e) { UI.err(e.message); }
-}
-
-async function deductCredits(username) {
-  const { value: amount } = await Swal.fire({
-    title: `Kurangi Kredit: ${username}`,
-    input: 'number',
-    inputLabel: 'Jumlah kredit',
-    inputPlaceholder: '5',
-    inputAttributes: { min: '1', step: '1' },
-    showCancelButton: true,
-    confirmButtonText: 'Kurangi',
-    cancelButtonText: 'Batal'
-  });
-  if (!amount) return;
-  try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/deduct`, {
-      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ username, amount: parseInt(amount) }),
+    const payments = j.data || [];
+    
+    let total = 0, active = 0, totalQuota = 0;
+    payments.forEach(p => {
+      total += (p.amount || 0);
+      if (p.status === 'success') active++;
+      totalQuota += (p.quota_used || 0);
     });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.detail || 'Gagal kurangi kredit');
-    UI.ok(`Kredit ${username} dikurangi ${amount}. Sisa: ${j.credits}`);
-    loadUsers();
-  } catch (e) { UI.err(e.message); }
+    
+    totalPayments = total;
+    activeSubs = active;
+    avgQuota = payments.length > 0 ? Math.round(totalQuota / payments.length) : 0;
+    
+    document.getElementById('totalPayments').textContent = formatRupiah(total);
+    document.getElementById('activeSubs').textContent = active;
+    document.getElementById('avgQuota').textContent = avgQuota;
+    
+    document.getElementById('billingSection').classList.remove('hidden');
+  } catch (e) {
+    document.getElementById('billingSection').classList.add('hidden');
+    console.error(e);
+  }
 }
 
-async function setCredits(username) {
-  const { value: amount } = await Swal.fire({
-    title: `Set Kredit: ${username}`,
-    input: 'number',
-    inputLabel: 'Jumlah kredit baru',
-    inputPlaceholder: '100',
-    inputAttributes: { min: '0', step: '1' },
-    showCancelButton: true,
-    confirmButtonText: 'Set',
-    cancelButtonText: 'Batal'
-  });
-  if (amount === '') return;
-  try {
-    const r = await fetch(`${Auth.apiBase}/api/v1/users/${username}/credits/set`, {
-      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ username, amount: parseInt(amount) }),
-    });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.detail || 'Gagal set kredit');
-    UI.ok(`Kredit ${username} diset ke ${amount}`);
-    loadUsers();
-  } catch (e) { UI.err(e.message); }
+function formatRupiah(angka) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
 }
 
+// Highlight row when hovered
+document.querySelectorAll('#userBody tr').forEach(row => {
+  row.addEventListener('mouseenter', () => row.style.backgroundColor '#f8f9fa');
+  row.addEventListener('mouseleave', () => row.style.backgroundColor '');
+});
+
+// Initialize
 loadUsers();
 
-async function checkAdminRole() {
-  try {
-    const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
-    if (r.ok) {
-      const j = await r.json();
-      const isAdmin = j.username === 'admin' || j.role === 'admin';
-      if (!isAdmin) window.location.href = 'dashboard.html';
-    }
-  } catch {}
-}
-checkAdminRole();
 </script>
 </body>
 </html>
