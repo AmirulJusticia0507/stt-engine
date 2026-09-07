@@ -8,226 +8,366 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/theme.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    #sidebar { transition: width 0.25s cubic-bezier(.4,0,.2,1); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+  </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
-
+<body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
 <div class="flex min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-transparent dark:border-slate-800/80 w-64 transition-all duration-200 flex flex-col">
+  <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
     <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
-      <a href="dashboard.html" id="brand" class="flex items-center gap-2.5 overflow-hidden">
-        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-cover shadow-md flex-shrink-0" />
-        <span class="lbl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
+      <a href="dashboard.html" class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
+          <img src="assets/logo.png" alt="Logo" class="w-5 h-5 object-contain" onerror="this.style.display='none'" />
+        </div>
+        <span class="lbl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
       </a>
-      <button id="collapseBtn" class="bg-slate-800 hover:bg-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 transition" title="Collapse">⇔</button>
+      <button id="collapseBtn" class="ml-2 flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
     </div>
-    <nav class="px-2 space-y-1 text-sm">
-      <a href="dashboard.html" class="nav block px-3 py-2 rounded-lg bg-slate-800 text-white">📊 <span class="lbl">Dashboard</span></a>
-      <a href="transcribe.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🎤 <span class="lbl">Transcribe</span></a>
-      <a href="model.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🧠 <span class="lbl">Model</span></a>
-      <a href="audit.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">📋 <span class="lbl">Audit Log</span></a>
-      <a href="history.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800">🕘 <span class="lbl">Riwayat</span></a>
-      <a href="pricing.html" class="nav block px-3 py-2 rounded-lg hover:bg-slate-800 bg-indigo-600 text-white">💳 <span class="lbl">Langganan</span></a>
-      <a href="users.html" class="nav admin-only block px-3 py-2 rounded-lg bg-slate-800 text-white">👥 <span class="lbl">Manajemen User</span></a>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
+      <p class="lbl px-2 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Menu</p>
+      <a href="dashboard.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="lbl font-medium">Dashboard</span>
+      </a>
+      <a href="transcribe.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+        <span class="lbl font-medium">Transcribe</span>
+      </a>
+      <a href="model.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+        <span class="lbl font-medium">Model</span>
+      </a>
+      <a href="history.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="lbl font-medium">Riwayat</span>
+      </a>
+      <a href="audit.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="lbl font-medium">Audit Log</span>
+      </a>
+      <div class="lbl pt-3 pb-1"><p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Akun</p></div>
+      <a href="pricing.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span class="lbl font-medium">Langganan</span>
+      </a>
+      <a href="settings.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl font-medium">Pengaturan</span>
+      </a>
+      <a href="users.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/80 text-white shadow-md shadow-indigo-900/40">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="lbl font-medium">Manajemen User</span>
+      </a>
     </nav>
-    <div class="flex-1"></div>
-    <div class="p-4 text-xs text-slate-400"><span class="lbl">Login sebagai </span><b id="who" class="text-slate-200"></b></div>
+    <div class="border-t border-slate-800/60 p-3">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/50 transition cursor-default">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0" id="avatarInitial">U</div>
+        <div class="lbl min-w-0">
+          <p class="text-xs text-slate-400">Login sebagai</p>
+          <p class="text-sm font-semibold text-white truncate" id="who"></p>
+        </div>
+      </div>
+    </div>
   </aside>
 
   <!-- MAIN -->
-  <div class="flex-1 flex flex-col min-w-0">
-
-    <!-- HEADER -->
-    <header class="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
-      <button id="mobileBtn" class="md:hidden border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1">☰</button>
-      <h1 id="title" class="font-semibold text-slate-800 dark:text-white">Manajemen User</h1>
-      <div class="flex-1"></div>
-      <span id="health" class="text-xs text-slate-500 dark:text-slate-400 hidden md:block"></span>
-      <button id="themeToggleBtn" onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 text-xs md:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 transition cursor-pointer" title="Ganti Mode">
-        <span class="theme-icon">🌙</span>
-        <span class="theme-text hidden sm:inline">Gelap</span>
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-5 py-3.5 flex items-center gap-3">
+      <button id="mobileBtn" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <button id="logoutBtn" onclick="Auth.logout()" class="text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-1.5">Keluar</button>
+      <div>
+        <h1 class="font-semibold text-slate-800 dark:text-white text-sm">Manajemen User</h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Admin panel — kelola semua pengguna</p>
+      </div>
+      <div class="flex-1"></div>
+      <button onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
+        <span class="theme-icon">🌙</span><span class="theme-text hidden sm:inline">Gelap</span>
+      </button>
+      <button onclick="Auth.logout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-medium transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="hidden sm:inline">Keluar</span>
+      </button>
     </header>
 
-    <!-- CONTENT -->
-    <main class="p-4 md:p-6 max-w-5xl w-full mx-auto">
+    <main class="flex-1 overflow-y-auto p-5 md:p-7 space-y-5">
 
-      <!-- STATS CARDS -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-          <div class="flex items-start">
-            <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="totalUsers">0</span>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-slate-500 dark:text-slate-400">Total User</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="totalUsersCount">0</p>
-            </div>
-          </div>
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-4">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total User</p>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white" id="statTotal">—</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-          <div class="flex items-start">
-            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="activeUsers">0</span>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-slate-500 dark:text-slate-400">Aktif</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="activeUsersCount">0</p>
-            </div>
-          </div>
+        <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-4">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Aktif</p>
+          <p class="text-2xl font-extrabold text-emerald-500" id="statActive">—</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm hover:shadow-md p-5 transition">
-          <div class="flex items-start">
-            <div class="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900 flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl font-bold text-violet-600 dark:text-violet-400" id="planFree">0</span>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-slate-500 dark:text-slate-400">Paket Free</p>
-              <p class="font-medium text-slate-800 dark:text-white" id="planFreeCount">0</p>
-            </div>
-          </div>
+        <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-4">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Paket Free</p>
+          <p class="text-2xl font-extrabold text-violet-500" id="statFree">—</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-4">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Berlangganan</p>
+          <p class="text-2xl font-extrabold text-indigo-500" id="statPaid">—</p>
         </div>
       </div>
 
-      <!-- USER TABLE -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 transition">
-        <div class="flex items-center gap-2 mb-3">
-          <h2 class="font-semibold text-slate-900 dark:text-white">Daftar User</h2>
+      <!-- User table -->
+      <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div>
+            <h2 class="font-semibold text-slate-900 dark:text-white text-sm">Daftar Pengguna</h2>
+            <p class="text-xs text-slate-400 mt-0.5" id="userCount">Memuat...</p>
+          </div>
           <div class="flex-1"></div>
-          <button id="userRefreshBtn" class="text-sm border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg px-3 py-1.5 transition">Muat ulang</button>
+          <div class="relative hidden sm:block">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <input id="searchUser" type="text" placeholder="Cari username..."
+              class="pl-8 pr-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 w-40 transition" />
+          </div>
+          <button id="userRefreshBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Refresh
+          </button>
         </div>
-        <div class="overflow-auto">
-          <table class="w-full text-sm text-slate-800 dark:text-slate-200">
-            <thead><tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-              <th class="py-2">Username</th>
-              <th class="py-2">Role</th>
-              <th class="py-2">Paket</th>
-              <th class="py-2">Kredit</th>
-              <th class="py-2 text-right">Aksi</th>
-            </tr></thead>
-            <tbody id="userBody">
-            </tbody>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 dark:border-slate-800">
+                <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">User</th>
+                <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-3">Role</th>
+                <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-3">Paket</th>
+                <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-3">Kredit</th>
+                <th class="text-right text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="userBody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- BILLING SUMMARY -->
-      <div id="billingSection" class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-sm p-5 mt-6 hidden">
-        <h3 class="font-semibold text-slate-900 dark:text-white mb-3">Ringkasan Pembayaran</h3>
-        <div class="space-y-3 text-sm">
-          <div>
-            <span class="font-medium text-slate-700 dark:text-slate-300">Total Pembayaran:</span>
-            <span id="totalPayments" class="font-bold text-indigo-600 dark:text-indigo-400">Rp0</span>
-          </div>
-          <div>
-            <span class="font-medium text-slate-700 dark:text-slate-300">Berlangganan Aktif:</span>
-            <span id="activeSubs" class="font-bold text-emerald-600 dark:text-emerald-400">0</span>
-          </div>
-          <div>
-            <span class="font-medium text-slate-700 dark:text-slate-300">Rata-rata kuota:</span>
-            <span id="avgQuota" class="font-bold text-violet-600 dark:text-violet-400">0</span>
-          </div>
-        </div>
-      </div>
-
     </main>
+
+    <footer class="px-7 py-4 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+      <span>STT Engine · FastAPI + Faster-Whisper</span>
+      <span id="footUser"></span>
+    </footer>
   </div>
 </div>
 
 <script src="assets/auth.js"></script>
 <script>
-document.getElementById('who').textContent = Auth.user;
-document.getElementById('footUser').textContent = Auth.user;
+if (!Auth.requireAuth()) throw new Error('redirect');
+const username = Auth.user;
+document.getElementById('who').textContent = username;
+document.getElementById('footUser').textContent = username;
+document.getElementById('avatarInitial').textContent = (username || 'U').charAt(0).toUpperCase();
 
-// Initialize stats
-let totalUsers = 0, activeUsers = 0, planFreeCount = 0;
-let totalPayments = 0, activeSubs = 0, avgQuota = 0;
+const sb = document.getElementById('sidebar');
+function setCollapsed(c) {
+  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
+  document.querySelectorAll('#sidebar .lbl').forEach(e => e.classList.toggle('hidden', c));
+  localStorage.setItem('sb_collapsed', c ? '1' : '0');
+}
+document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
+document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
+if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
 
-async function loadUsers() {
+function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+const PLAN_COLORS = {
+  free:  'bg-slate-500/10 text-slate-400 border-slate-500/20',
+  basic: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  pro:   'bg-violet-500/10 text-violet-400 border-violet-500/20',
+};
+
+let allUsers = [];
+
+function renderUsers(rows) {
   const body = document.getElementById('userBody');
-  try {
-    const r = await fetch(Auth.apiBase + '/api/v1/users', { headers: Auth.headers() });
-    if (!r.ok) throw new Error('Gagal memuat user');
-    const j = await r.json();
-    const rows = j.users || [];
-    totalUsers = rows.length;
-    
-    // Count stats
-    activeUsers = rows.filter(u => u.status === 'active' || u.status === 'active').length;
-    planFreeCount = rows.filter(u => (u.plan || 'Free') === 'Free').length;
-    
-    document.getElementById('totalUsers').textContent = totalUsers;
-    document.getElementById('activeUsersCount').textContent = activeUsers;
-    document.getElementById('planFreeCount').textContent = planFreeCount;
-    
-    // Build table rows
-    const btnClass = "text-xs border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded px-1.5 py-0.5 mr-1 transition";
-    body.innerHTML = rows.map(u => {
-      const planBadge = `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${u.plan === 'Free' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300' : u.plan === 'Basic' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-violet-100 text-violet-600 dark:bg-violet-900 dark:text-violet-300'}">${u.plan || 'Free'}</span>`;
-      return `<tr class="border-t border-slate-200 dark:border-slate-800/80">
-        <td class="py-2 font-medium">${u.username}</td>
-        <td class="py-2"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-semibold' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}">${u.role}</span></td>
-        <td class="py-2">${planBadge}</td>
-        <td class="py-2"><span class="font-mono text-indigo-600 dark:text-indigo-400">${u.credits || 0}</span></td>
-        <td class="py-2 text-right">
-          ${u.username !== 'admin' ? `
-            <button class="${btnClass}" onclick="changeRole('${u.username}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? 'Buat User' : 'Jadikan Admin'}</button>
-            <button class="text-xs border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="topupCredits('${u.username}')">+ Kredit</button>
-            <button class="text-xs border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="deductCredits('${u.username}')">- Kredit</button>
-            <button class="text-xs border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded px-1.5 py-0.5 mr-1 transition" onclick="setCredits('${u.username}')">Set Kredit</button>
-            <button class="text-xs bg-rose-600 hover:bg-rose-700 text-white rounded px-2 py-1 transition" onclick="deleteUser('${u.username}')">Hapus</button>` : `<span class="text-xs text-slate-400 dark:text-slate-500">(admin utama)</span>`}
-          </td></tr>`;
-    }).join('') || '<tr><td class="py-2 text-slate-400 dark:text-slate-500" colspan="5">Belum ada user.</td></tr>';
-    
-    // Load billing summary
-    await loadBillingSummary();
-  } catch (e) { body.innerHTML = '<tr><td class="py-2 text-rose-500" colspan="5">Gagal memuat: ' + e.message + '</td></tr>'; }
+  document.getElementById('userCount').textContent = rows.length + ' pengguna';
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="5" class="px-5 py-12 text-center text-slate-400 text-sm">Tidak ada user ditemukan.</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(u => {
+    const plan = (u.plan || 'free').toLowerCase();
+    const planCls = PLAN_COLORS[plan] || PLAN_COLORS.free;
+    const isAdmin = u.role === 'admin';
+    const isSelf  = u.username === username;
+    return `
+      <tr class="border-t border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+        <td class="px-5 py-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              ${escHtml((u.username || '?').charAt(0).toUpperCase())}
+            </div>
+            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">${escHtml(u.username)}</span>
+            ${isSelf ? '<span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded-full font-semibold">Anda</span>' : ''}
+          </div>
+        </td>
+        <td class="px-3 py-3.5">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${isAdmin ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}">
+            ${escHtml(u.role || 'user')}
+          </span>
+        </td>
+        <td class="px-3 py-3.5">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${planCls}">
+            ${escHtml(u.plan || 'free')}
+          </span>
+        </td>
+        <td class="px-3 py-3.5">
+          <span class="font-mono text-sm font-semibold text-indigo-500">${escHtml(String(u.credits ?? 0))}</span>
+        </td>
+        <td class="px-5 py-3.5 text-right">
+          ${isSelf
+            ? '<span class="text-[11px] text-slate-400 italic">(akun Anda)</span>'
+            : `<div class="flex items-center justify-end gap-1.5 flex-wrap">
+                <button onclick="changeRole('${escHtml(u.username)}','${isAdmin ? 'user' : 'admin'}')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-400 transition whitespace-nowrap">
+                  ${isAdmin ? 'Jadi User' : 'Jadi Admin'}
+                </button>
+                <button onclick="topupCredits('${escHtml(u.username)}')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition">
+                  +Kredit
+                </button>
+                <button onclick="setCredits('${escHtml(u.username)}')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition">
+                  Set
+                </button>
+                <button onclick="deleteUser('${escHtml(u.username)}')"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-600 hover:bg-rose-700 text-white transition">
+                  Hapus
+                </button>
+              </div>`
+          }
+        </td>
+      </tr>`;
+  }).join('');
 }
 
-async function loadBillingSummary() {
+async function loadUsers() {
+  document.getElementById('userBody').innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 text-xs">
+    <div class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Memuat...</div>
+  </td></tr>`;
   try {
-    const r = await fetch(Auth.apiBase + '/api/v1/billing', { headers: Auth.headers() });
-    if (!r.ok) throw new Error('Gagal memuat riwayat pembayaran');
+    const r = await fetch(Auth.apiBase + '/api/v1/users', { headers: Auth.headers() });
+    if (!r.ok) throw new Error('Gagal memuat user (butuh akses admin)');
     const j = await r.json();
-    const payments = j.data || [];
-    
-    let total = 0, active = 0, totalQuota = 0;
-    payments.forEach(p => {
-      total += (p.amount || 0);
-      if (p.status === 'success') active++;
-      totalQuota += (p.quota_used || 0);
-    });
-    
-    totalPayments = total;
-    activeSubs = active;
-    avgQuota = payments.length > 0 ? Math.round(totalQuota / payments.length) : 0;
-    
-    document.getElementById('totalPayments').textContent = formatRupiah(total);
-    document.getElementById('activeSubs').textContent = active;
-    document.getElementById('avgQuota').textContent = avgQuota;
-    
-    document.getElementById('billingSection').classList.remove('hidden');
+    allUsers = j.users || [];
+
+    const total  = allUsers.length;
+    const active = allUsers.filter(u => u.is_active !== false).length;
+    const free   = allUsers.filter(u => !u.plan || u.plan.toLowerCase() === 'free').length;
+    const paid   = total - free;
+    document.getElementById('statTotal').textContent  = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statFree').textContent   = free;
+    document.getElementById('statPaid').textContent   = paid;
+
+    renderUsers(allUsers);
   } catch (e) {
-    document.getElementById('billingSection').classList.add('hidden');
-    console.error(e);
+    document.getElementById('userBody').innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-rose-400 text-sm">${escHtml(e.message)}</td></tr>`;
+    document.getElementById('userCount').textContent = 'Error';
   }
 }
 
-function formatRupiah(angka) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
-}
-
-// Highlight row when hovered
-document.querySelectorAll('#userBody tr').forEach(row => {
-  row.addEventListener('mouseenter', () => row.style.backgroundColor '#f8f9fa');
-  row.addEventListener('mouseleave', () => row.style.backgroundColor '');
+document.getElementById('userRefreshBtn').onclick = loadUsers;
+document.getElementById('searchUser')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  renderUsers(q ? allUsers.filter(u => (u.username || '').toLowerCase().includes(q)) : allUsers);
 });
 
-// Initialize
-loadUsers();
+async function changeRole(uname, newRole) {
+  if (!await UI.confirm(`Ubah role "${uname}" menjadi "${newRole}"?`)) return;
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${uname}/role`, {
+      method: 'PATCH', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ role: newRole }),
+    });
+    const j = await r.json(); Swal.close();
+    if (!r.ok) throw new Error(j.detail || 'Gagal');
+    UI.ok(`Role ${uname} diubah ke ${newRole}`);
+    loadUsers();
+  } catch (e) { Swal.close(); UI.err(e.message); }
+}
 
+async function topupCredits(uname) {
+  const { value } = await Swal.fire({
+    title: 'Tambah Kredit',
+    input: 'number', inputLabel: `Jumlah kredit untuk "${uname}"`, inputPlaceholder: '100',
+    confirmButtonText: 'Tambah', showCancelButton: true, cancelButtonText: 'Batal',
+    inputAttributes: { min: 1 },
+    background: document.documentElement.classList.contains('dark') ? '#0d1117' : '#fff',
+    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+  });
+  if (!value) return;
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${uname}/credits/topup`, {
+      method: 'POST', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ amount: parseInt(value) }),
+    });
+    const j = await r.json(); Swal.close();
+    if (!r.ok) throw new Error(j.detail || 'Gagal');
+    UI.ok(`Kredit ${uname} ditambah ${value}`);
+    loadUsers();
+  } catch (e) { Swal.close(); UI.err(e.message); }
+}
+
+async function setCredits(uname) {
+  const { value } = await Swal.fire({
+    title: 'Set Kredit',
+    input: 'number', inputLabel: `Set kredit "${uname}" ke:`, inputPlaceholder: '0',
+    confirmButtonText: 'Simpan', showCancelButton: true, cancelButtonText: 'Batal',
+    inputAttributes: { min: 0 },
+    background: document.documentElement.classList.contains('dark') ? '#0d1117' : '#fff',
+    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+  });
+  if (value === undefined || value === '') return;
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${uname}/credits`, {
+      method: 'PUT', headers: Auth.headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ credits: parseInt(value) }),
+    });
+    const j = await r.json(); Swal.close();
+    if (!r.ok) throw new Error(j.detail || 'Gagal');
+    UI.ok(`Kredit ${uname} diset ke ${value}`);
+    loadUsers();
+  } catch (e) { Swal.close(); UI.err(e.message); }
+}
+
+async function deleteUser(uname) {
+  if (!await UI.confirm(`Hapus user "${uname}" secara permanen? Tindakan ini tidak dapat dibatalkan!`)) return;
+  Swal.showLoading();
+  try {
+    const r = await fetch(`${Auth.apiBase}/api/v1/users/${uname}`, {
+      method: 'DELETE', headers: Auth.headers(),
+    });
+    Swal.close();
+    if (!r.ok) { const j = await r.json(); throw new Error(j.detail || 'Gagal'); }
+    UI.ok(`User "${uname}" dihapus`);
+    loadUsers();
+  } catch (e) { Swal.close(); UI.err(e.message); }
+}
+
+loadUsers();
 </script>
 </body>
 </html>
