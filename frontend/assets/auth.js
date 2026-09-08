@@ -85,28 +85,46 @@ async function initSidebarPlan() {
       basic: { label: 'Basic', cls: 'bg-indigo-600/80 text-indigo-100' },
       pro:   { label: 'Pro',   cls: 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' },
     };
-    const s = PLAN_STYLE[me.plan] || PLAN_STYLE.free;
-    badge.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${s.cls}">${s.label}</span>`;
+    if (me.is_admin) {
+      badge.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Admin
+      </span>`;
+    } else {
+      const s = PLAN_STYLE[me.plan] || PLAN_STYLE.free;
+      badge.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${s.cls}">${s.label}</span>`;
+    }
     badge.classList.remove('hidden');
   }
 
-  // Quota bar
+  // Quota bar — admin: tampilkan ikon unlimited, user biasa: progress bar
   const bar = document.getElementById('sidebarQuotaBar');
-  if (bar && me.quota_limit) {
-    const used = me.quota_used || 0;
-    const pct  = Math.min(100, Math.round(used / me.quota_limit * 100));
-    const color = pct >= 90 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-indigo-500';
-    bar.innerHTML = `
-      <div class="px-3 pb-3">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] text-slate-500">Kuota</span>
-          <span class="text-[10px] text-slate-400 font-mono">${used}/${me.quota_limit}</span>
-        </div>
-        <div class="h-1 rounded-full bg-slate-800 overflow-hidden">
-          <div class="${color} h-full rounded-full transition-all" style="width:${pct}%"></div>
-        </div>
-      </div>`;
-    bar.classList.remove('hidden');
+  if (bar) {
+    if (me.is_admin) {
+      bar.innerHTML = `
+        <div class="px-3 pb-3">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <span class="text-[10px] text-amber-400 font-semibold">Unlimited access</span>
+          </div>
+        </div>`;
+      bar.classList.remove('hidden');
+    } else if (me.quota_limit) {
+      const used  = me.quota_used || 0;
+      const pct   = Math.min(100, Math.round(used / me.quota_limit * 100));
+      const color = pct >= 90 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-indigo-500';
+      bar.innerHTML = `
+        <div class="px-3 pb-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-slate-500">Kuota</span>
+            <span class="text-[10px] text-slate-400 font-mono">${used}/${me.quota_limit}</span>
+          </div>
+          <div class="h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div class="${color} h-full rounded-full transition-all" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+      bar.classList.remove('hidden');
+    }
   }
 
   return me;

@@ -329,15 +329,30 @@ Auth.fetchMe().then(me => {
   // ── Welcome banner ──────────────────────────────────────────────────────
   const planLabel = PLAN_LABELS[me.plan] || me.plan;
 
-  // Plan badge
+  // Plan badge di banner
   const bannerBadge = document.getElementById('bannerPlanBadge');
   if (bannerBadge) {
-    bannerBadge.textContent = (PLAN_EMOJI[me.plan] || '') + ' ' + planLabel;
+    if (me.is_admin) {
+      bannerBadge.innerHTML = `<svg class="w-3.5 h-3.5 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg> Admin`;
+    } else {
+      bannerBadge.textContent = (PLAN_EMOJI[me.plan] || '') + ' ' + planLabel;
+    }
     bannerBadge.classList.remove('hidden');
   }
 
-  // Quota bar (hanya jika ada quota_limit)
-  if (me.quota_limit) {
+  // Quota di banner — admin: unlimited icon, user: progress bar
+  if (me.is_admin) {
+    const quotaEl = document.getElementById('bannerQuota');
+    const textEl  = document.getElementById('bannerQuotaText');
+    const barEl   = document.getElementById('bannerQuotaBar');
+    if (quotaEl && textEl && barEl) {
+      barEl.style.width = '100%';
+      barEl.style.backgroundColor = 'rgba(251,191,36,0.6)'; // amber
+      textEl.innerHTML = `<svg class="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M6.343 6.343a9 9 0 000 12.728M9.172 9.172a5 5 0 000 6.656"/></svg> Unlimited`;
+      quotaEl.classList.remove('hidden');
+      quotaEl.classList.add('flex');
+    }
+  } else if (me.quota_limit) {
     const used = me.quota_used || 0;
     const pct  = Math.min(100, Math.round(used / me.quota_limit * 100));
     const quotaEl  = document.getElementById('bannerQuota');
@@ -357,13 +372,17 @@ Auth.fetchMe().then(me => {
     }
   }
 
-  // stModel: prioritaskan plan info (health akan override jika load lebih lambat — OK)
+  // stModel subtitle
   const stModelEl = document.getElementById('stModel');
   if (stModelEl) {
-    const quotaTxt = me.quota_limit
-      ? ` · Kuota ${me.quota_used || 0}/${me.quota_limit}`
-      : ' · Kuota tidak terbatas';
-    stModelEl.textContent = 'Paket ' + planLabel + quotaTxt;
+    if (me.is_admin) {
+      stModelEl.textContent = 'Admin · Akses unlimited ke semua fitur';
+    } else {
+      const quotaTxt = me.quota_limit
+        ? ` · Kuota ${me.quota_used || 0}/${me.quota_limit}`
+        : ' · Kuota tidak terbatas';
+      stModelEl.textContent = 'Paket ' + planLabel + quotaTxt;
+    }
   }
 
   // ── Stat cards: mode personal (non-admin) ──────────────────────────────
@@ -383,7 +402,7 @@ Auth.fetchMe().then(me => {
     // Card 2: Kuota
     const quotaVal = me.quota_limit
       ? `${me.quota_used || 0}<span class="text-sm text-slate-400">/${me.quota_limit}</span>`
-      : '∞';
+      : '<svg class="w-7 h-7 inline text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M6.343 6.343a9 9 0 000 12.728M9.172 9.172a5 5 0 000 6.656"/></svg>';
     setCard('dashActiveUsers', quotaVal);
     document.getElementById('card2Label').textContent = 'Kuota';
     setTxt('card2Desc', 'Transkripsi terpakai bulan ini');
