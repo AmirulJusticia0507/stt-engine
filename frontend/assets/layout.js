@@ -34,6 +34,11 @@ const Layout = (() => {
     sb.classList.toggle('w-64', !c);
     sb.classList.toggle('w-20', c);
     document.querySelectorAll('#sidebar .lbl').forEach(el => el.classList.toggle('hidden', c));
+    // Status badge: hide model text when collapsed, keep dot
+    const statusModel = document.getElementById('statusModel');
+    if (statusModel) statusModel.classList.toggle('hidden', c);
+    const statusLabel = document.getElementById('statusLabel');
+    if (statusLabel) statusLabel.classList.toggle('hidden', c);
     localStorage.setItem('sb_collapsed', c ? '1' : '0');
   }
 
@@ -58,22 +63,48 @@ const Layout = (() => {
       const j = await r.json();
       const model  = j.model  || '—';
       const device = j.device || '—';
+
+      // Subtitle in header
       const sub = document.getElementById('pageSubtitle');
-      // Only set subtitle if page hasn't already set it
       if (sub && !sub.dataset.overridden) sub.textContent = model + ' · ' + device;
+
+      // Status badge in sidebar
+      const badge = document.getElementById('statusBadge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+      }
+      const labelEl = document.getElementById('statusLabel');
+      if (labelEl) labelEl.textContent = 'Online';
+      const modelEl = document.getElementById('statusModel');
+      if (modelEl) modelEl.textContent = model + ' · ' + device;
+
+      // sysStatus row (model.html / dashboard.html)
       const statusEl = document.getElementById('sysStatus');
       if (statusEl) {
-        statusEl.textContent  = '● Online';
-        statusEl.className    = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500';
+        statusEl.textContent = '● Online';
+        statusEl.className   = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500';
       }
-      document.getElementById('statusBadge')?.classList.remove('hidden');
-      document.getElementById('sysModel')?.setAttribute('data-value', model);
-      document.getElementById('sysDevice')?.setAttribute('data-value', device);
-      // Dispatch event so page-specific code can listen
+
       document.dispatchEvent(new CustomEvent('health', { detail: j }));
       return j;
     } catch {
-      document.getElementById('pageSubtitle')?.style && (document.getElementById('pageSubtitle').textContent = 'Backend unreachable');
+      const sub = document.getElementById('pageSubtitle');
+      if (sub && !sub.dataset.overridden) sub.textContent = 'Backend unreachable';
+
+      const badge = document.getElementById('statusBadge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+        badge.className = badge.className
+          .replace('bg-slate-800/60', 'bg-rose-500/10')
+          .replace('border-slate-700/50', 'border-rose-500/20');
+      }
+      const labelEl = document.getElementById('statusLabel');
+      if (labelEl) { labelEl.textContent = 'Offline'; labelEl.className = labelEl.className.replace('text-emerald-400', 'text-rose-400'); }
+      const modelEl = document.getElementById('statusModel');
+      if (modelEl) modelEl.textContent = 'Backend unreachable';
+
       const statusEl = document.getElementById('sysStatus');
       if (statusEl) {
         statusEl.textContent = '● Offline';

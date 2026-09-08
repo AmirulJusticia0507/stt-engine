@@ -1,3 +1,19 @@
+<style>
+  @keyframes pulse-ring {
+    0%   { transform: scale(.9); opacity: .9; }
+    70%  { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(.9); opacity: 0; }
+  }
+  .pulse-dot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: currentColor;
+    animation: pulse-ring 1.8s ease-out infinite;
+  }
+</style>
+
 <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0" style="transition: width 0.25s cubic-bezier(.4,0,.2,1)">
 
   <!-- Top glow -->
@@ -75,6 +91,16 @@
       <span class="lbl font-medium">Manajemen User</span>
     </a>
   </nav>
+
+  <!-- Online status -->
+  <div id="statusBadge" class="hidden mx-3 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+    <span class="relative w-2 h-2 shrink-0">
+      <span class="pulse-dot absolute inset-0 rounded-full bg-emerald-400"></span>
+      <span class="relative block w-2 h-2 rounded-full bg-emerald-400"></span>
+    </span>
+    <span class="lbl text-[11px] font-semibold text-emerald-400" id="statusLabel">Online</span>
+    <span class="lbl text-[10px] text-slate-500 truncate" id="statusModel"></span>
+  </div>
 
   <!-- Quota bar -->
   <div id="sidebarQuotaBar" class="hidden"></div>
