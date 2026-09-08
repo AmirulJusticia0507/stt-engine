@@ -499,59 +499,134 @@ document.getElementById('contactAvatar').textContent = (Auth.user || 'U').charAt
 document.getElementById('contactName').textContent = Auth.user;
 
 // ── Plan data ─────────────────────────────────────────────────────────────
+const PRICE_PER_CREDIT = 500; // Rp 500 / kredit PAYG
+
 const PLANS = {
+  community: {
+    name: 'Community',
+    icon: `<svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+    iconBg: 'bg-teal-500/10',
+    monthly: 0, yearly: 0, onetime: 0,
+    features: ['Self-hosted server sendiri','Kuota tidak terbatas','MIT License','Semua model Whisper'],
+    isFree: true,
+  },
   free: {
     name: 'Free',
     icon: `<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"/></svg>`,
     iconBg: 'bg-slate-500/10',
-    monthly: 0, yearly: 0,
+    monthly: 0, yearly: 0, onetime: 0,
     features: ['10 transkripsi/bulan','Export TXT / SRT / VTT','Riwayat transkrip'],
+    isFree: true,
   },
   basic: {
     name: 'Basic',
     icon: `<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`,
     iconBg: 'bg-indigo-500/10',
-    monthly: 49000, yearly: 490000,
+    monthly: 49000, yearly: 490000, onetime: 0,
     features: ['300 transkripsi/bulan','Batch upload (maks 20 file)','Export TXT / SRT / VTT','Antrean async prioritas'],
   },
   pro: {
     name: 'Pro',
     icon: `<svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>`,
     iconBg: 'bg-violet-500/10',
-    monthly: 149000, yearly: 1490000,
+    monthly: 149000, yearly: 1490000, onetime: 0,
     features: ['Transkripsi tanpa limit','Semua fitur Basic + async','Model large-v3-turbo','Prioritas antrean tertinggi'],
+  },
+  payg: {
+    name: 'Pay-as-you-go',
+    icon: `<svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    iconBg: 'bg-amber-500/10',
+    monthly: 0, yearly: 0, onetime: 0,
+    features: ['Tidak ada langganan bulanan','Kredit tidak kedaluwarsa','Export TXT / SRT / VTT','Batch upload tersedia'],
+    isPayg: true,
+  },
+  enterprise: {
+    name: 'Enterprise',
+    icon: `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>`,
+    iconBg: 'bg-rose-500/10',
+    monthly: 0, yearly: 0, onetime: 0,
+    features: ['Volume tak terbatas + SLA','On-premise / private cloud','Dedicated API + custom model','Dukungan teknis 24/7'],
+    isEnterprise: true,
   },
 };
 
 // Read URL params
-const params = new URLSearchParams(location.search);
-let currentPlan   = params.get('plan')   || 'basic';
-let currentPeriod = params.get('period') || 'monthly';
+const params      = new URLSearchParams(location.search);
+let currentPlan   = params.get('plan')    || 'basic';
+let currentPeriod = params.get('period')  || 'monthly';
+let paygCredits   = parseInt(params.get('credits') || '50');
 let discountPct   = 0;
 let currentMethod = 'card';
 let selectedWallet = '';
 
 if (!PLANS[currentPlan]) currentPlan = 'basic';
 
-function formatRp(n) {
-  return 'Rp ' + n.toLocaleString('id-ID');
-}
+// For PAYG: show credit picker in summary instead of period label
+const isPayg       = currentPlan === 'payg';
+const isEnterprise = currentPlan === 'enterprise';
+const isCommunity  = currentPlan === 'community';
+
+function formatRp(n) { return 'Rp ' + n.toLocaleString('id-ID'); }
 
 // ── Render summary ────────────────────────────────────────────────────────
 function renderSummary() {
   const plan = PLANS[currentPlan];
-  const base = plan[currentPeriod] || 0;
-  const discount = Math.round(base * discountPct / 100);
+
+  // ── PAYG: harga berdasarkan kredit ──
+  let base, periodLabel;
+  if (isPayg) {
+    base        = paygCredits * PRICE_PER_CREDIT;
+    periodLabel = `${paygCredits} kredit × ${formatRp(PRICE_PER_CREDIT)}`;
+  } else if (isEnterprise) {
+    base        = 0;
+    periodLabel = 'Harga custom — hubungi sales';
+  } else {
+    base        = plan[currentPeriod] || 0;
+    periodLabel = currentPeriod === 'yearly'
+      ? 'Paket Tahunan — hemat 17%'
+      : currentPeriod === 'onetime' ? 'Sekali bayar' : 'Paket Bulanan';
+  }
+
+  const discount     = Math.round(base * discountPct / 100);
   const afterDiscount = base - discount;
-  const tax = Math.round(afterDiscount * 0.11);
-  const total = afterDiscount + tax;
+  const tax           = (isPayg || isEnterprise || base === 0) ? 0 : Math.round(afterDiscount * 0.11);
+  const total         = afterDiscount + tax;
 
   // Icon + name
   document.getElementById('summaryIcon').className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${plan.iconBg}`;
-  document.getElementById('summaryIcon').innerHTML = plan.icon;
-  document.getElementById('summaryPlanName').textContent = plan.name;
-  document.getElementById('summaryPeriodLabel').textContent =
-    currentPeriod === 'yearly' ? 'Paket Tahunan — hemat 17%' : 'Paket Bulanan';
+  document.getElementById('summaryIcon').innerHTML  = plan.icon;
+  document.getElementById('summaryPlanName').textContent    = plan.name;
+  document.getElementById('summaryPeriodLabel').textContent = periodLabel;
+
+  // PAYG: inject credit counter ke summary card
+  const paygRow = document.getElementById('paygSummaryRow');
+  if (isPayg) {
+    if (!paygRow) {
+      const row = document.createElement('div');
+      row.id = 'paygSummaryRow';
+      row.className = 'mt-3 space-y-2';
+      row.innerHTML = `
+        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <span>Jumlah kredit</span>
+          <div class="flex items-center gap-2">
+            <button onclick="adjustCredits(-10)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm flex items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">−</button>
+            <span id="paygCreditDisplay" class="font-bold text-amber-500 w-8 text-center">${paygCredits}</span>
+            <button onclick="adjustCredits(10)"  class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm flex items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">+</button>
+          </div>
+        </div>
+        <input type="range" min="10" max="500" step="10" value="${paygCredits}"
+          oninput="paygCredits=parseInt(this.value);renderSummary()"
+          class="w-full h-1.5 rounded-full appearance-none cursor-pointer" style="accent-color:#f59e0b" />`;
+      document.getElementById('summaryFeatures').after(row);
+    } else {
+      const disp = document.getElementById('paygCreditDisplay');
+      if (disp) disp.textContent = paygCredits;
+      const slider = paygRow.querySelector('input[type=range]');
+      if (slider) slider.value = paygCredits;
+    }
+  } else if (paygRow) {
+    paygRow.remove();
+  }
 
   // Features
   document.getElementById('summaryFeatures').innerHTML = plan.features.map(f => `
@@ -561,17 +636,25 @@ function renderSummary() {
     </li>`).join('');
 
   // Prices
-  document.getElementById('summaryBasePrice').textContent = base === 0 ? 'Gratis' : formatRp(base);
-  document.getElementById('summaryTax').textContent = base === 0 ? 'Rp 0' : formatRp(tax);
-  document.getElementById('summaryTotal').textContent = base === 0 ? 'Rp 0' : formatRp(total);
+  if (isEnterprise) {
+    document.getElementById('summaryBasePrice').textContent = 'Custom';
+    document.getElementById('summaryTax').textContent       = '—';
+    document.getElementById('summaryTotal').textContent     = 'Custom';
+  } else {
+    document.getElementById('summaryBasePrice').textContent = base === 0 ? 'Gratis' : formatRp(base);
+    document.getElementById('summaryTax').textContent       = (base === 0 || isPayg) ? 'Rp 0' : formatRp(tax);
+    document.getElementById('summaryTotal').textContent     = base === 0 ? 'Rp 0' : formatRp(total);
+  }
 
-  // Sync QRIS amount if visible
+  // Sync QRIS amount
   const qrisAmountEl = document.getElementById('qrisAmount');
-  if (qrisAmountEl) qrisAmountEl.textContent = base === 0 ? 'Rp 0 (Gratis)' : formatRp(total);
+  if (qrisAmountEl) {
+    qrisAmountEl.textContent = isEnterprise ? 'Custom' : base === 0 ? 'Rp 0 (Gratis)' : formatRp(total);
+  }
 
   // Discount row
   const discRow = document.getElementById('discountRow');
-  if (discountPct > 0) {
+  if (discountPct > 0 && !isEnterprise) {
     discRow.classList.remove('hidden');
     document.getElementById('summaryDiscount').textContent = '−' + formatRp(discount);
   } else {
@@ -579,9 +662,21 @@ function renderSummary() {
   }
 
   // Pay button label
-  document.getElementById('payBtnText').innerHTML = base === 0
-    ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Aktifkan Gratis`
-    : `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Bayar ${formatRp(total)}`;
+  const btnText = document.getElementById('payBtnText');
+  if (isEnterprise) {
+    btnText.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Hubungi Sales`;
+  } else if (base === 0) {
+    btnText.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Aktifkan Gratis`;
+  } else if (isPayg) {
+    btnText.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Beli ${paygCredits} Kredit · ${formatRp(total)}`;
+  } else {
+    btnText.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Bayar ${formatRp(total)}`;
+  }
+}
+
+function adjustCredits(delta) {
+  paygCredits = Math.max(10, Math.min(500, paygCredits + delta));
+  renderSummary();
 }
 
 renderSummary();
@@ -649,11 +744,13 @@ const QRIS_DURATION = 5 * 60; // 5 menit
 
 function updateQrisAmount() {
   const plan = PLANS[currentPlan];
-  const base = plan[currentPeriod] || 0;
-  const discount = Math.round(base * discountPct / 100);
+  const base = isPayg
+    ? paygCredits * PRICE_PER_CREDIT
+    : (plan[currentPeriod] || 0);
+  const discount     = Math.round(base * discountPct / 100);
   const afterDiscount = base - discount;
-  const tax = Math.round(afterDiscount * 0.11);
-  const total = afterDiscount + tax;
+  const tax           = isPayg ? 0 : Math.round(afterDiscount * 0.11);
+  const total         = afterDiscount + tax;
   const el = document.getElementById('qrisAmount');
   if (el) el.textContent = base === 0 ? 'Rp 0 (Gratis)' : formatRp(total);
 }
@@ -740,21 +837,55 @@ document.getElementById('cvvHelp').onclick = () => {
 // ── Submit payment ─────────────────────────────────────────────────────────
 async function submitPayment() {
   const plan = PLANS[currentPlan];
+  const isDark = document.documentElement.classList.contains('dark');
+  const swalTheme = { background: isDark ? '#0d1117' : '#fff', color: isDark ? '#f8fafc' : '#0f172a' };
 
-  // Validate
-  if (currentMethod === 'card') {
-    const name   = document.getElementById('cardName').value.trim();
-    const number = document.getElementById('cardNumber').value.replace(/\s/g,'');
-    const exp    = document.getElementById('cardExp').value;
-    const cvv    = document.getElementById('cardCvv').value;
-    if (!name)          return UI.err('Masukkan nama pemegang kartu');
-    if (number.length < 16) return UI.err('Nomor kartu tidak valid');
-    if (!exp.includes('/'))  return UI.err('Masukkan masa berlaku kartu');
-    if (cvv.length < 3)     return UI.err('CVV tidak valid');
-  } else if (currentMethod === 'ewallet' && !selectedWallet) {
-    return UI.err('Pilih dompet digital terlebih dahulu');
-  } else if (currentMethod === 'qris') {
-    // QRIS: langsung lanjut, pembayaran dikonfirmasi via scan
+  // ── Enterprise: redirect ke contact form ──────────────────────────────
+  if (isEnterprise) {
+    Swal.fire({
+      title: '🏢 Enterprise Sales',
+      html: `<div class="text-left space-y-3">
+        <p class="text-sm text-slate-400">Tim kami akan menghubungi Anda dalam 1×24 jam kerja.</p>
+        <div class="space-y-2">
+          <input id="eName"  type="text"  placeholder="Nama / Perusahaan"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
+          <input id="eEmail" type="email" placeholder="Email bisnis"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
+          <textarea id="eMsg" rows="3" placeholder="Ceritakan kebutuhan Anda (volume, use-case, dll)"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500 resize-none"></textarea>
+        </div>
+      </div>`,
+      confirmButtonText: 'Kirim Permintaan',
+      confirmButtonColor: '#e11d48',
+      showCancelButton: true, cancelButtonText: 'Batal',
+      ...swalTheme,
+      preConfirm: () => {
+        const name  = document.getElementById('eName').value.trim();
+        const email = document.getElementById('eEmail').value.trim();
+        if (!name || !email) { Swal.showValidationMessage('Nama dan email wajib diisi'); return false; }
+        return { name, email };
+      },
+    }).then(res => {
+      if (res.isConfirmed) UI.ok('Permintaan Enterprise dikirim! Tim kami akan segera menghubungi ' + res.value.email);
+    });
+    return;
+  }
+
+  // ── Validate payment method (bukan Enterprise/free/community) ─────────
+  const base = isPayg ? paygCredits * PRICE_PER_CREDIT : (plan[currentPeriod] || 0);
+  if (base > 0) {
+    if (currentMethod === 'card') {
+      const name   = document.getElementById('cardName').value.trim();
+      const number = document.getElementById('cardNumber').value.replace(/\s/g,'');
+      const exp    = document.getElementById('cardExp').value;
+      const cvv    = document.getElementById('cardCvv').value;
+      if (!name)               return UI.err('Masukkan nama pemegang kartu');
+      if (number.length < 16)  return UI.err('Nomor kartu tidak valid');
+      if (!exp.includes('/'))  return UI.err('Masukkan masa berlaku kartu');
+      if (cvv.length < 3)      return UI.err('CVV tidak valid');
+    } else if (currentMethod === 'ewallet' && !selectedWallet) {
+      return UI.err('Pilih dompet digital terlebih dahulu');
+    }
   }
 
   const btn = document.getElementById('payBtn');
@@ -764,8 +895,9 @@ async function submitPayment() {
   try {
     const body = {
       plan: currentPlan,
-      period: currentPeriod,
+      period: isPayg ? 'onetime' : currentPeriod,
       method: currentMethod,
+      credits: isPayg ? paygCredits : undefined,
       coupon: document.getElementById('couponInput').value.trim().toUpperCase() || null,
     };
     const r = await fetch(Auth.apiBase + '/api/v1/billing/checkout', {
@@ -775,41 +907,40 @@ async function submitPayment() {
     });
     const j = await r.json();
     Swal.close();
-
     if (!r.ok) throw new Error(j.detail || 'Pembayaran gagal');
 
-    // Success
     await Swal.fire({
       icon: 'success',
       title: '🎉 Pembayaran Berhasil!',
-      html: `<p class="text-sm text-slate-400">Paket <b class="text-white">${plan.name}</b> kini aktif di akun Anda.</p>
-             <p class="text-xs text-slate-500 mt-2">ID Transaksi: <code class="text-indigo-400">${j.transaction_id || 'TXN-' + Date.now()}</code></p>`,
+      html: isPayg
+        ? `<p class="text-sm text-slate-400"><b class="text-white">${paygCredits} kredit</b> ditambahkan ke akun Anda.</p>`
+        : `<p class="text-sm text-slate-400">Paket <b class="text-white">${plan.name}</b> kini aktif di akun Anda.</p>
+           <p class="text-xs text-slate-500 mt-2">ID Transaksi: <code class="text-indigo-400">${j.transaction_id || 'TXN-' + Date.now()}</code></p>`,
       confirmButtonText: 'Ke Dashboard',
       confirmButtonColor: '#6366f1',
-      background: document.documentElement.classList.contains('dark') ? '#0d1117' : '#fff',
-      color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+      ...swalTheme,
     });
-    Auth.invalidateMe(); // refresh cache plan setelah bayar
+    Auth.invalidateMe();
     location.href = 'dashboard.html';
 
   } catch (e) {
     Swal.close();
-
-    // Simulate success for free plan or demo
-    if (currentPlan === 'free' || e.message.includes('404') || e.message.includes('fetch')) {
+    // Demo fallback (backend belum ada / 404)
+    if (base === 0 || e.message.includes('404') || e.message.includes('fetch') || e.message.includes('Failed')) {
       await Swal.fire({
         icon: 'success',
-        title: plan.monthly === 0 ? '✅ Paket Aktif!' : '🎉 Pembayaran Diproses!',
-        html: plan.monthly === 0
-          ? `<p class="text-sm text-slate-400">Paket <b class="text-white">Free</b> sudah aktif di akun Anda.</p>`
-          : `<p class="text-sm text-slate-400">Pembayaran paket <b class="text-white">${plan.name}</b> sedang diverifikasi.</p>`,
+        title: isPayg ? '💳 Kredit Ditambahkan!' : (base === 0 ? '✅ Aktif!' : '🎉 Diproses!'),
+        html: isPayg
+          ? `<p class="text-sm text-slate-400"><b class="text-white">${paygCredits} kredit</b> berhasil ditambahkan.</p>`
+          : base === 0
+            ? `<p class="text-sm text-slate-400">Paket <b class="text-white">${plan.name}</b> sudah aktif.</p>`
+            : `<p class="text-sm text-slate-400">Pembayaran paket <b class="text-white">${plan.name}</b> sedang diverifikasi.</p>`,
         confirmButtonText: 'Ke Dashboard',
         confirmButtonColor: '#6366f1',
-        background: document.documentElement.classList.contains('dark') ? '#0d1117' : '#fff',
-        color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+        ...swalTheme,
       });
-      Auth.invalidateMe(); // refresh cache plan setelah bayar
-    location.href = 'dashboard.html';
+      Auth.invalidateMe();
+      location.href = 'dashboard.html';
     } else {
       UI.err(e.message);
       btn.disabled = false;

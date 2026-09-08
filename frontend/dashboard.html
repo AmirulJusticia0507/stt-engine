@@ -323,8 +323,22 @@ document.addEventListener('health', e => {
 Auth.fetchMe().then(me => {
   if (!me) return;
 
-  const PLAN_LABELS = { free: 'Free', basic: 'Basic ⚡', pro: 'Pro 🚀' };
-  const PLAN_EMOJI  = { free: '🆓', basic: '⚡', pro: '🚀' };
+  const PLAN_LABELS = {
+    community:  'Community',
+    free:       'Free',
+    basic:      'Basic ⚡',
+    pro:        'Pro 🚀',
+    payg:       'Pay-as-you-go',
+    enterprise: 'Enterprise 🏢',
+  };
+  const PLAN_EMOJI = {
+    community:  '🌐',
+    free:       '🆓',
+    basic:      '⚡',
+    pro:        '🚀',
+    payg:       '💳',
+    enterprise: '🏢',
+  };
 
   // ── Welcome banner ──────────────────────────────────────────────────────
   const planLabel = PLAN_LABELS[me.plan] || me.plan;
@@ -377,6 +391,12 @@ Auth.fetchMe().then(me => {
   if (stModelEl) {
     if (me.is_admin) {
       stModelEl.textContent = 'Admin · Akses unlimited ke semua fitur';
+    } else if (me.plan === 'payg') {
+      stModelEl.textContent = `Pay-as-you-go · ${me.credits ?? 0} kredit tersisa`;
+    } else if (me.plan === 'enterprise') {
+      stModelEl.textContent = 'Enterprise · Volume unlimited + SLA';
+    } else if (me.plan === 'community') {
+      stModelEl.textContent = 'Community · Self-hosted, unlimited';
     } else {
       const quotaTxt = me.quota_limit
         ? ` · Kuota ${me.quota_used || 0}/${me.quota_limit}`
@@ -399,13 +419,25 @@ Auth.fetchMe().then(me => {
     document.getElementById('card1Label').textContent = 'Paket';
     setTxt('card1Desc', 'Paket aktif Anda');
 
-    // Card 2: Kuota
-    const quotaVal = me.quota_limit
-      ? `${me.quota_used || 0}<span class="text-sm text-slate-400">/${me.quota_limit}</span>`
-      : '<svg class="w-7 h-7 inline text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M6.343 6.343a9 9 0 000 12.728M9.172 9.172a5 5 0 000 6.656"/></svg>';
+    // Card 2: Kuota / Kredit tergantung plan
+    let quotaVal;
+    if (me.plan === 'payg') {
+      // PAYG: tampilkan kredit tersisa
+      quotaVal = `${me.credits ?? 0}<span class="text-sm text-amber-400 ml-1">kredit</span>`;
+      document.getElementById('card2Label').textContent = 'Kredit';
+      setTxt('card2Desc', 'Kredit PAYG tersisa');
+    } else if (['community','pro','enterprise'].includes(me.plan)) {
+      quotaVal = '<svg class="w-7 h-7 inline text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M6.343 6.343a9 9 0 000 12.728M9.172 9.172a5 5 0 000 6.656"/></svg>';
+      document.getElementById('card2Label').textContent = 'Kuota';
+      setTxt('card2Desc', 'Tidak terbatas');
+    } else {
+      quotaVal = me.quota_limit
+        ? `${me.quota_used || 0}<span class="text-sm text-slate-400">/${me.quota_limit}</span>`
+        : '<svg class="w-7 h-7 inline text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M6.343 6.343a9 9 0 000 12.728M9.172 9.172a5 5 0 000 6.656"/></svg>';
+      document.getElementById('card2Label').textContent = 'Kuota';
+      setTxt('card2Desc', 'Transkripsi terpakai bulan ini');
+    }
     setCard('dashActiveUsers', quotaVal);
-    document.getElementById('card2Label').textContent = 'Kuota';
-    setTxt('card2Desc', 'Transkripsi terpakai bulan ini');
 
     // Card 3: Kredit
     setCard('dashPlanFree', me.credits ?? 0);

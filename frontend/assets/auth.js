@@ -81,9 +81,12 @@ async function initSidebarPlan() {
   const badge = document.getElementById('sidebarPlanBadge');
   if (badge) {
     const PLAN_STYLE = {
-      free:  { label: 'Free',  cls: 'bg-slate-700 text-slate-300' },
-      basic: { label: 'Basic', cls: 'bg-indigo-600/80 text-indigo-100' },
-      pro:   { label: 'Pro',   cls: 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' },
+      community: { label: 'Community', cls: 'bg-teal-600/20 text-teal-300' },
+      free:      { label: 'Free',      cls: 'bg-slate-700 text-slate-300' },
+      basic:     { label: 'Basic',     cls: 'bg-indigo-600/80 text-indigo-100' },
+      pro:       { label: 'Pro',       cls: 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' },
+      payg:      { label: 'Pay-as-you-go', cls: 'bg-amber-500/20 text-amber-300' },
+      enterprise:{ label: 'Enterprise',cls: 'bg-gradient-to-r from-rose-600 to-pink-600 text-white' },
     };
     if (me.is_admin) {
       badge.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">

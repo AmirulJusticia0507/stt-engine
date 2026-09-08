@@ -454,27 +454,55 @@ def set_user_credits(username: str, amount: int) -> bool:
 # Harga placeholder (Rupiah), quota = jumlah transcribe per periode.
 # quota None = unlimited.
 PLANS: dict[str, dict] = {
+    "community": {
+        "code": "community", "name": "Community",
+        "monthly": 0, "yearly": 0,
+        "quota": None, "minutes": None,
+        "price_per_credit": 0,
+        "features": ["transcribe", "self_hosted", "open_source"],
+        "self_hosted": True,
+    },
     "free": {
         "code": "free", "name": "Free",
         "monthly": 0, "yearly": 0,
         "quota": 10, "minutes": 60,
+        "price_per_credit": 0,
         "features": ["transcribe"],
     },
     "basic": {
         "code": "basic", "name": "Basic",
         "monthly": 49000, "yearly": 490000,
         "quota": 300, "minutes": 1800,
+        "price_per_credit": 0,
         "features": ["transcribe", "batch", "export"],
     },
     "pro": {
         "code": "pro", "name": "Pro",
         "monthly": 149000, "yearly": 1490000,
         "quota": None, "minutes": None,
+        "price_per_credit": 0,
         "features": ["transcribe", "batch", "async", "export", "priority"],
     },
+    "payg": {
+        "code": "payg", "name": "Pay-as-you-go",
+        "monthly": 0, "yearly": 0,
+        "quota": None, "minutes": None,
+        "price_per_credit": 500,   # Rp 500 per transkripsi / kredit
+        "features": ["transcribe", "batch", "export", "credits"],
+        "credit_based": True,
+    },
+    "enterprise": {
+        "code": "enterprise", "name": "Enterprise",
+        "monthly": 0, "yearly": 0,   # harga custom — negosiasi
+        "quota": None, "minutes": None,
+        "price_per_credit": 0,
+        "features": ["transcribe", "batch", "async", "export", "priority",
+                     "sla", "on_premise", "dedicated_api", "custom_model"],
+        "contact_only": True,
+    },
 }
-PERIODS = ("monthly", "yearly")
-PERIOD_DAYS = {"monthly": 30, "yearly": 365}
+PERIODS = ("monthly", "yearly", "onetime")
+PERIOD_DAYS = {"monthly": 30, "yearly": 365, "onetime": 0}
 
 
 class Subscription(Base):

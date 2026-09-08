@@ -15,6 +15,7 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+
     .plan-card {
       position: relative;
       cursor: pointer;
@@ -22,19 +23,14 @@
     }
     .plan-card:hover { transform: translateY(-4px); }
 
-    /* Animated rotating gradient border */
-    @property --angle {
-      syntax: '<angle>';
-      initial-value: 0deg;
-      inherits: false;
-    }
+    @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
     @keyframes spin-border { to { --angle: 360deg; } }
 
     .plan-card::before {
       content: '';
       position: absolute;
       inset: -1.5px;
-      border-radius: 1rem; /* match rounded-2xl */
+      border-radius: 1rem;
       padding: 1.5px;
       background: conic-gradient(from var(--angle), transparent 60%, rgba(99,102,241,0) 70%);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -46,18 +42,12 @@
       transition: opacity 0.3s ease;
       z-index: 1;
     }
-
-    /* Selected state */
-    .plan-card.selected {
-      transform: translateY(-6px) scale(1.02);
-    }
+    .plan-card.selected { transform: translateY(-6px) scale(1.02); }
     .plan-card.selected::before {
       opacity: 1;
       background: conic-gradient(from var(--angle), #6366f1, #a855f7, #ec4899, #6366f1);
       animation: spin-border 3s linear infinite;
     }
-
-    /* Popular default gradient border */
     .plan-card.popular::after {
       content: '';
       position: absolute;
@@ -73,32 +63,25 @@
       z-index: 1;
     }
     .plan-card.popular.selected::after { opacity: 0; }
+    .plan-card.selected[data-plan="community"] { box-shadow: 0 8px 40px rgba(20,184,166,0.25); }
+    .plan-card.selected[data-plan="free"]      { box-shadow: 0 8px 40px rgba(100,116,139,0.25); }
+    .plan-card.selected[data-plan="basic"]     { box-shadow: 0 8px 40px rgba(99,102,241,0.35); }
+    .plan-card.selected[data-plan="pro"]       { box-shadow: 0 8px 40px rgba(168,85,247,0.35); }
+    .plan-card.selected[data-plan="payg"]      { box-shadow: 0 8px 40px rgba(245,158,11,0.30); }
+    .plan-card.selected[data-plan="enterprise"]{ box-shadow: 0 8px 40px rgba(239,68,68,0.25); }
 
-    /* Glow shadow per plan */
-    .plan-card.selected[data-plan="free"]  { box-shadow: 0 8px 40px rgba(100,116,139,0.25); }
-    .plan-card.selected[data-plan="basic"] { box-shadow: 0 8px 40px rgba(99,102,241,0.35); }
-    .plan-card.selected[data-plan="pro"]   { box-shadow: 0 8px 40px rgba(168,85,247,0.35); }
-
-    /* Checkmark badge on selected */
     .plan-card .select-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 22px;
-      height: 22px;
-      border-radius: 9999px;
+      position: absolute; top: 12px; right: 12px;
+      width: 22px; height: 22px; border-radius: 9999px;
       background: linear-gradient(135deg, #6366f1, #a855f7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transform: scale(0.5);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0.5);
       transition: opacity 0.2s ease, transform 0.25s cubic-bezier(.34,1.56,.64,1);
     }
-    .plan-card.selected .select-badge {
-      opacity: 1;
-      transform: scale(1);
-    }
+    .plan-card.selected .select-badge { opacity: 1; transform: scale(1); }
+
+    /* PAYG credit picker */
+    .credit-slider { accent-color: #f59e0b; }
   </style>
 </head>
 <body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
@@ -106,106 +89,253 @@
 
   <div id="sidebar-container"></div>
 
-  <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
     <div id="header-container"></div>
 
     <main class="flex-1 overflow-y-auto p-5 md:p-7">
+
       <!-- Hero -->
       <div class="text-center mb-8">
-        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Pilih Paket yang Tepat</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">Mulai gratis, upgrade kapan saja. Semua paket dilengkapi jaminan uang kembali 7 hari.</p>
-        <!-- Toggle billing period -->
-        <div class="inline-flex items-center gap-1 mt-4 bg-slate-200 dark:bg-slate-800 rounded-xl p-1">
+        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Pilih Paket yang Tepat</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Mulai gratis, upgrade kapan saja. Semua paket dilengkapi jaminan uang kembali 7 hari.</p>
+
+        <!-- Billing period toggle -->
+        <div class="inline-flex items-center gap-1 mt-5 bg-slate-200 dark:bg-slate-800 rounded-xl p-1">
           <button id="btnMonthly" onclick="setPeriod('monthly')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">Bulanan</button>
-          <button id="btnYearly"  onclick="setPeriod('yearly')"  class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400">Tahunan <span class="text-emerald-500">-17%</span></button>
+          <button id="btnYearly"  onclick="setPeriod('yearly')"  class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400">Tahunan <span class="text-emerald-500 font-bold">-17%</span></button>
         </div>
       </div>
 
-      <!-- Plan cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto mt-6 pt-4">
+      <!-- ── ROW 1: Community · Free · Basic · Pro ─────────────────────── -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto mb-5 pt-4">
+
+        <!-- Community -->
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-5 flex flex-col"
+             data-plan="community" onclick="selectPlan('community')">
+          <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+          <div class="mb-4">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Community</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Self-hosted · Open source</p>
+          </div>
+          <div class="mb-4">
+            <span class="text-2xl font-extrabold text-slate-900 dark:text-white">Gratis</span>
+            <span class="text-xs text-slate-400"> / selamanya</span>
+          </div>
+          <ul class="space-y-2 mb-5 flex-1 text-xs">
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-teal-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Self-hosted server sendiri</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-teal-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Kuota tidak terbatas</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-teal-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>MIT License</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-teal-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Semua model Whisper</li>
+            <li class="flex items-center gap-2 text-slate-400"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Support cloud kami</li>
+          </ul>
+          <a href="https://github.com" target="_blank"
+             class="plan-btn w-full py-2.5 rounded-xl border-2 border-teal-500/50 text-teal-500 font-semibold text-xs text-center hover:bg-teal-500/10 transition">
+            Clone di GitHub →
+          </a>
+        </div>
 
         <!-- Free -->
-        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col" data-plan="free" onclick="selectPlan('free')">
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-5 flex flex-col"
+             data-plan="free" onclick="selectPlan('free')">
           <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
-          <div class="mb-5">
+          <div class="mb-4">
             <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
               <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"/></svg>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Free</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Free</h3>
             <p class="text-xs text-slate-400 mt-0.5">Coba tanpa kartu kredit</p>
           </div>
-          <div class="mb-5">
-            <span class="text-3xl font-extrabold text-slate-900 dark:text-white">Rp0</span>
-            <span class="text-sm text-slate-400">/bulan</span>
+          <div class="mb-4">
+            <span class="text-2xl font-extrabold text-slate-900 dark:text-white">Rp0</span>
+            <span class="text-xs text-slate-400">/bulan</span>
           </div>
-          <ul class="space-y-2.5 mb-6 flex-1">
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>10 transkripsi/bulan</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Riwayat transkrip</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Batch upload</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Antrean prioritas</li>
+          <ul class="space-y-2 mb-5 flex-1 text-xs">
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>10 transkripsi/bulan</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Riwayat transkrip</li>
+            <li class="flex items-center gap-2 text-slate-400"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Batch upload</li>
+            <li class="flex items-center gap-2 text-slate-400"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Antrean prioritas</li>
           </ul>
-          <button onclick="event.stopPropagation();checkout('free')" class="plan-btn w-full py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">Mulai Gratis</button>
+          <button onclick="event.stopPropagation();checkout('free')"
+            class="plan-btn w-full py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            Mulai Gratis
+          </button>
         </div>
 
         <!-- Basic (popular) -->
-        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-6 pt-10 flex flex-col relative" data-plan="basic" onclick="selectPlan('basic')">
-          <div class="select-badge" style="top:44px"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
-          <!-- Badge POPULER -->
+        <div class="plan-card popular bg-white dark:bg-slate-900/80 rounded-2xl p-5 pt-9 flex flex-col relative"
+             data-plan="basic" onclick="selectPlan('basic')">
+          <div class="select-badge" style="top:40px"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
           <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
-            <span class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-bold shadow-lg shadow-indigo-900/40 ring-2 ring-white dark:ring-slate-900 whitespace-nowrap">
-              ⭐ POPULER
-            </span>
+            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-bold shadow-lg shadow-indigo-900/40 ring-2 ring-white dark:ring-slate-900 whitespace-nowrap">⭐ POPULER</span>
           </div>
-          <div class="mb-5">
+          <div class="mb-4">
             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-3">
               <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Basic</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Basic</h3>
             <p class="text-xs text-slate-400 mt-0.5">Untuk penggunaan harian</p>
           </div>
-          <div class="mb-5">
-            <span class="text-3xl font-extrabold text-slate-900 dark:text-white" id="basicPrice">Rp49.000</span>
-            <span class="text-sm text-slate-400" id="basicPeriod">/bulan</span>
+          <div class="mb-1">
+            <span class="text-2xl font-extrabold text-slate-900 dark:text-white" id="basicPrice">Rp49.000</span>
+            <span class="text-xs text-slate-400" id="basicPeriod">/bulan</span>
           </div>
-          <ul class="space-y-2.5 mb-6 flex-1">
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>300 transkripsi/bulan</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Batch upload (maks 20 file)</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Antrean async prioritas</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-400"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Model large-v3-turbo</li>
+          <p class="text-[11px] text-emerald-500 mb-4" id="basicSavings"></p>
+          <ul class="space-y-2 mb-5 flex-1 text-xs">
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>300 transkripsi/bulan</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Batch upload (20 file)</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Antrean async prioritas</li>
+            <li class="flex items-center gap-2 text-slate-400"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Model large-v3-turbo</li>
           </ul>
-          <button onclick="event.stopPropagation();checkout('basic')" class="plan-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-900/30 transition">Pilih Basic</button>
+          <button onclick="event.stopPropagation();checkout('basic')"
+            class="plan-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-md shadow-indigo-900/30 transition">
+            Pilih Basic
+          </button>
         </div>
 
         <!-- Pro -->
-        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col" data-plan="pro" onclick="selectPlan('pro')">
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-5 flex flex-col"
+             data-plan="pro" onclick="selectPlan('pro')">
           <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
-          <div class="mb-5">
+          <div class="mb-4">
             <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-3">
               <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pro</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Pro</h3>
             <p class="text-xs text-slate-400 mt-0.5">Untuk kebutuhan profesional</p>
           </div>
           <div class="mb-1">
-            <span class="text-3xl font-extrabold text-slate-900 dark:text-white" id="proPrice">Rp149.000</span>
-            <span class="text-sm text-slate-400" id="proPeriod">/bulan</span>
+            <span class="text-2xl font-extrabold text-slate-900 dark:text-white" id="proPrice">Rp149.000</span>
+            <span class="text-xs text-slate-400" id="proPeriod">/bulan</span>
           </div>
-          <p class="text-xs text-emerald-500 mb-4" id="proSavings"></p>
-          <ul class="space-y-2.5 mb-6 flex-1">
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Transkripsi tanpa limit</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Semua fitur Basic + async</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Model large-v3-turbo</li>
-            <li class="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Prioritas antrean tertinggi</li>
+          <p class="text-[11px] text-emerald-500 mb-4" id="proSavings"></p>
+          <ul class="space-y-2 mb-5 flex-1 text-xs">
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Transkripsi tanpa limit</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Semua fitur Basic</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Model large-v3-turbo</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Prioritas antrean tertinggi</li>
+            <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Async job queue</li>
           </ul>
-          <button onclick="event.stopPropagation();checkout('pro')" class="plan-btn w-full py-2.5 rounded-xl border-2 border-violet-500/50 text-violet-500 font-semibold text-sm hover:bg-violet-500/10 transition">Pilih Pro</button>
+          <button onclick="event.stopPropagation();checkout('pro')"
+            class="plan-btn w-full py-2.5 rounded-xl border-2 border-violet-500/50 text-violet-500 font-semibold text-xs hover:bg-violet-500/10 transition">
+            Pilih Pro
+          </button>
+        </div>
+      </div>
+
+      <!-- ── ROW 2: Pay-as-you-go · Enterprise ─────────────────────────── -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-6xl mx-auto mb-6">
+
+        <!-- Pay-as-you-go -->
+        <div class="plan-card bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-5 flex flex-col md:flex-row gap-5"
+             data-plan="payg" onclick="selectPlan('payg')">
+          <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+
+          <!-- Left: info -->
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Pay-as-you-go</h3>
+                <p class="text-xs text-slate-400">Bayar hanya yang dipakai</p>
+              </div>
+            </div>
+            <div class="flex items-baseline gap-1 mb-3">
+              <span class="text-2xl font-extrabold text-amber-500">Rp500</span>
+              <span class="text-xs text-slate-400">/ transkripsi</span>
+            </div>
+            <ul class="space-y-1.5 text-xs">
+              <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Tidak ada langganan bulanan</li>
+              <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Beli kredit, pakai sesukamu</li>
+              <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Kredit tidak kedaluwarsa</li>
+              <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Export TXT / SRT / VTT</li>
+            </ul>
+          </div>
+
+          <!-- Right: credit picker -->
+          <div class="md:w-52 flex flex-col gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kredit</span>
+              <span class="text-lg font-extrabold text-amber-500" id="paygCredits">50</span>
+            </div>
+            <input type="range" id="paygSlider" min="10" max="500" step="10" value="50"
+              class="credit-slider w-full h-1.5 rounded-full appearance-none cursor-pointer"
+              oninput="updatePayg(this.value)" />
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>10</span><span>500</span>
+            </div>
+            <div class="pt-1 border-t border-slate-200 dark:border-slate-700">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-xs text-slate-500">Total</span>
+                <span class="text-sm font-extrabold text-slate-900 dark:text-white" id="paygTotal">Rp25.000</span>
+              </div>
+              <button onclick="event.stopPropagation();checkoutPayg()"
+                class="plan-btn w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs transition shadow-md shadow-amber-900/20">
+                Beli Kredit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="plan-card bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#0d1117] dark:to-slate-900 rounded-2xl border border-slate-700/50 p-5 flex flex-col relative overflow-hidden"
+             data-plan="enterprise" onclick="selectPlan('enterprise')">
+          <div class="select-badge"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+
+          <!-- Decorative glow -->
+          <div class="absolute -top-12 -right-12 w-40 h-40 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="relative flex flex-col md:flex-row gap-5 h-full">
+            <!-- Left -->
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-white">Enterprise</h3>
+                  <p class="text-xs text-slate-400">Harga custom · Hubungi kami</p>
+                </div>
+              </div>
+              <div class="mb-3">
+                <span class="text-2xl font-extrabold text-white">Custom</span>
+                <span class="text-xs text-slate-400"> pricing</span>
+              </div>
+              <ul class="space-y-1.5 text-xs">
+                <li class="flex items-center gap-2 text-slate-300"><svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Volume tak terbatas + SLA</li>
+                <li class="flex items-center gap-2 text-slate-300"><svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>On-premise / private cloud</li>
+                <li class="flex items-center gap-2 text-slate-300"><svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Dedicated API + custom model</li>
+                <li class="flex items-center gap-2 text-slate-300"><svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Dukungan teknis prioritas 24/7</li>
+              </ul>
+            </div>
+
+            <!-- Right: CTA -->
+            <div class="md:w-44 flex flex-col justify-center gap-3">
+              <div class="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3.5 text-center">
+                <p class="text-[10px] text-slate-400 mb-1">Mulai dari</p>
+                <p class="text-base font-extrabold text-white">Rp5 juta</p>
+                <p class="text-[10px] text-slate-400">/bulan · negosiasi</p>
+              </div>
+              <button onclick="event.stopPropagation();contactEnterprise()"
+                class="plan-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-xs shadow-md shadow-rose-900/30 transition">
+                Hubungi Sales →
+              </button>
+              <p class="text-[10px] text-slate-500 text-center">Respons dalam 1×24 jam</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Guarantee note -->
-      <p class="text-center text-xs text-slate-400 mt-8">🛡️ Jaminan uang kembali 7 hari · Tidak ada komitmen jangka panjang · Batalkan kapan saja</p>
+      <p class="text-center text-xs text-slate-400 dark:text-slate-500 pb-2">🛡️ Garansi uang kembali 7 hari untuk paket berbayar · Batalkan kapan saja</p>
+
     </main>
 
     <footer class="px-7 py-4 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
@@ -227,58 +357,85 @@ initSidebarPlan().then(me => {
   if (me) applyActivePlan(me.plan);
 });
 
+// ── State ──────────────────────────────────────────────────────────────────
 let currentPeriod = 'monthly';
 let selectedPlan  = 'basic';
-let activePlanNow = 'free'; // paket aktif user saat ini
+let activePlanNow = 'free';
 
-// Urutan upgrade/downgrade
-const PLAN_RANK = { free: 0, basic: 1, pro: 2 };
+// Rank untuk logika upgrade/downgrade (community & enterprise dikecualikan)
+const PLAN_RANK = { free: 0, basic: 1, pro: 2, payg: -1, community: -1, enterprise: 99 };
 
-/* Terapkan state paket aktif ke semua card tombol */
-function applyActivePlan(userPlan) {
-  activePlanNow = userPlan || 'free';
-  document.querySelectorAll('.plan-card').forEach(card => {
-    const cardPlan = card.dataset.plan;
-    const btn      = card.querySelector('.plan-btn');
-    if (!btn) return;
+const PRICES = {
+  basic: { monthly: 'Rp49.000',  yearly: 'Rp490.000' },
+  pro:   { monthly: 'Rp149.000', yearly: 'Rp1.490.000' },
+};
 
-    const isCurrent  = cardPlan === activePlanNow;
-    const isUpgrade  = PLAN_RANK[cardPlan] > PLAN_RANK[activePlanNow];
-    const isDowngrade= PLAN_RANK[cardPlan] < PLAN_RANK[activePlanNow];
+// ── PAYG credit picker ─────────────────────────────────────────────────────
+function updatePayg(val) {
+  const credits = parseInt(val);
+  const total   = credits * 500;
+  document.getElementById('paygCredits').textContent = credits;
+  document.getElementById('paygTotal').textContent   = 'Rp ' + total.toLocaleString('id-ID');
+}
+updatePayg(50); // init
 
-    if (isCurrent) {
-      btn.textContent = '✓ Paket Anda';
-      btn.disabled    = true;
-      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-sm cursor-default '
-        + 'bg-emerald-500/15 border-2 border-emerald-500/40 text-emerald-500';
-      // Badge "AKTIF" di card
-      let badge = card.querySelector('.active-badge');
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'active-badge absolute top-3 left-3 z-10 inline-flex items-center gap-1 '
-          + 'px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 '
-          + 'text-emerald-400 text-[10px] font-bold';
-        badge.innerHTML = '● Aktif';
-        card.appendChild(badge);
-      }
-    } else if (isUpgrade) {
-      btn.textContent = '⬆ Upgrade';
-      btn.disabled    = false;
-      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-sm transition '
-        + (cardPlan === 'basic'
-          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-900/30'
-          : 'border-2 border-violet-500/50 text-violet-500 hover:bg-violet-500/10');
-    } else if (isDowngrade) {
-      btn.textContent = '⬇ Downgrade';
-      btn.disabled    = false;
-      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-sm transition '
-        + 'border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 '
-        + 'hover:bg-slate-100 dark:hover:bg-slate-800';
+function checkoutPayg() {
+  const credits = parseInt(document.getElementById('paygSlider').value);
+  window.location.href = `checkout.html?plan=payg&credits=${credits}&period=onetime`;
+}
+
+// ── Enterprise contact ─────────────────────────────────────────────────────
+function contactEnterprise() {
+  Swal.fire({
+    title: '🏢 Enterprise Sales',
+    html: `<div class="text-left space-y-3">
+      <p class="text-sm text-slate-400">Tim kami akan menghubungi Anda dalam 1×24 jam kerja.</p>
+      <div class="space-y-2">
+        <input id="eName"  type="text"  placeholder="Nama / Perusahaan"
+          class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
+        <input id="eEmail" type="email" placeholder="Email bisnis"
+          class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
+        <textarea id="eMsg" rows="3" placeholder="Ceritakan kebutuhan Anda (volume, use-case, dll)"
+          class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500 resize-none"></textarea>
+      </div>
+    </div>`,
+    confirmButtonText: 'Kirim Permintaan',
+    confirmButtonColor: '#e11d48',
+    showCancelButton: true,
+    cancelButtonText: 'Batal',
+    background: document.documentElement.classList.contains('dark') ? '#0d1117' : '#fff',
+    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+    preConfirm: () => {
+      const name  = document.getElementById('eName').value.trim();
+      const email = document.getElementById('eEmail').value.trim();
+      if (!name || !email) { Swal.showValidationMessage('Nama dan email wajib diisi'); return false; }
+      return { name, email, msg: document.getElementById('eMsg').value.trim() };
+    },
+  }).then(res => {
+    if (res.isConfirmed) {
+      UI.ok('Permintaan Enterprise dikirim! Tim kami akan segera menghubungi ' + res.value.email);
     }
   });
 }
 
+// ── Period toggle ──────────────────────────────────────────────────────────
+function setPeriod(p) {
+  currentPeriod = p;
+  const isYearly = p === 'yearly';
+  document.getElementById('btnMonthly').className = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${!isYearly ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
+  document.getElementById('btnYearly').className  = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${isYearly  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
+  document.getElementById('basicPrice').textContent  = PRICES.basic[p];
+  document.getElementById('basicPeriod').textContent = isYearly ? '/tahun' : '/bulan';
+  document.getElementById('basicSavings').textContent = isYearly ? 'Hemat Rp98.000 vs bulanan' : '';
+  document.getElementById('proPrice').textContent    = PRICES.pro[p];
+  document.getElementById('proPeriod').textContent   = isYearly ? '/tahun' : '/bulan';
+  document.getElementById('proSavings').textContent  = isYearly ? 'Hemat Rp298.000 vs bulanan' : '';
+}
+
+// ── Select card ────────────────────────────────────────────────────────────
 function selectPlan(plan) {
+  // Community = link ke GitHub, tidak perlu select state
+  if (plan === 'community') return;
   selectedPlan = plan;
   document.querySelectorAll('.plan-card').forEach(card => {
     const isSelected = card.dataset.plan === plan;
@@ -286,35 +443,66 @@ function selectPlan(plan) {
   });
   document.querySelectorAll('.plan-btn').forEach(btn => {
     const card = btn.closest('.plan-card');
-    if (!card || card.dataset.plan === activePlanNow) return; // jangan ubah tombol "Paket Anda"
-    btn.classList.toggle('ring-2', card.dataset.plan === plan);
-    btn.classList.toggle('ring-offset-2', card.dataset.plan === plan);
-    btn.classList.toggle('ring-indigo-500', card.dataset.plan === plan);
+    if (!card || card.dataset.plan === activePlanNow) return;
+    btn.classList.toggle('ring-2',           card.dataset.plan === plan);
+    btn.classList.toggle('ring-offset-2',    card.dataset.plan === plan);
+    btn.classList.toggle('ring-indigo-500',  card.dataset.plan === plan);
   });
 }
-const PRICES = {
-  basic:  { monthly: 'Rp49.000',  yearly: 'Rp490.000' },
-  pro:    { monthly: 'Rp149.000', yearly: 'Rp1.490.000' },
-};
 
-function setPeriod(p) {
-  currentPeriod = p;
-  const isYearly = p === 'yearly';
-  document.getElementById('btnMonthly').className = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${!isYearly ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
-  document.getElementById('btnYearly').className  = `px-4 py-1.5 rounded-lg text-xs font-semibold transition ${isYearly  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
-  document.getElementById('basicPrice').textContent = PRICES.basic[p];
-  document.getElementById('basicPeriod').textContent = isYearly ? '/tahun' : '/bulan';
-  document.getElementById('proPrice').textContent   = PRICES.pro[p];
-  document.getElementById('proPeriod').textContent  = isYearly ? '/tahun' : '/bulan';
-  document.getElementById('proSavings').textContent = isYearly ? 'Hemat Rp298.000 vs bulanan' : '';
+// ── Apply active plan state ────────────────────────────────────────────────
+function applyActivePlan(userPlan) {
+  activePlanNow = userPlan || 'free';
+  document.querySelectorAll('.plan-card').forEach(card => {
+    const cardPlan = card.dataset.plan;
+    const btn      = card.querySelector('.plan-btn');
+    if (!btn) return;
+
+    // Community = tidak berubah (GitHub link)
+    // Enterprise = tidak ada ranking, selalu "Hubungi Sales"
+    if (cardPlan === 'community' || cardPlan === 'enterprise') return;
+
+    const isCurrent   = cardPlan === activePlanNow;
+    const rankCard    = PLAN_RANK[cardPlan] ?? 0;
+    const rankCurrent = PLAN_RANK[activePlanNow] ?? 0;
+    const isUpgrade   = rankCard > rankCurrent && rankCard > 0;
+    const isDowngrade = rankCard < rankCurrent && rankCard >= 0;
+
+    if (isCurrent) {
+      btn.textContent = '✓ Paket Anda';
+      btn.disabled    = true;
+      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-xs cursor-default bg-emerald-500/15 border-2 border-emerald-500/40 text-emerald-500';
+      let badge = card.querySelector('.active-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'active-badge absolute top-3 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold';
+        badge.innerHTML = '● Aktif';
+        card.appendChild(badge);
+      }
+    } else if (cardPlan === 'payg') {
+      // PAYG: selalu tersedia, label tergantung apakah aktif
+      btn.textContent = activePlanNow === 'payg' ? '✓ Paket Anda' : 'Beli Kredit';
+    } else if (isUpgrade) {
+      btn.textContent = '⬆ Upgrade';
+      btn.disabled    = false;
+      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-xs transition '
+        + (cardPlan === 'basic'
+          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-900/30'
+          : 'border-2 border-violet-500/50 text-violet-500 hover:bg-violet-500/10');
+    } else if (isDowngrade) {
+      btn.textContent = '⬇ Downgrade';
+      btn.disabled    = false;
+      btn.className   = 'plan-btn w-full py-2.5 rounded-xl font-semibold text-xs transition border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    }
+  });
 }
 
+// ── Checkout ───────────────────────────────────────────────────────────────
 function checkout(plan) {
-  if (plan === activePlanNow) return; // sudah paket ini
+  if (plan === activePlanNow && plan !== 'payg') return;
   if (plan === 'free') {
-    // Downgrade ke free: konfirmasi dulu
-    UI.confirm('Downgrade ke paket Free? Fitur premium akan dinonaktifkan akhir periode ini.').then(ok => {
-      if (ok) window.location.href = `checkout.html?plan=free&period=monthly`;
+    UI.confirm('Downgrade ke paket Free? Fitur premium dinonaktifkan akhir periode ini.').then(ok => {
+      if (ok) window.location.href = 'checkout.html?plan=free&period=monthly';
     });
     return;
   }
@@ -322,7 +510,7 @@ function checkout(plan) {
   window.location.href = `checkout.html?plan=${plan}&period=${currentPeriod}`;
 }
 
-// Highlight active plan from URL, atau default ke basic
+// ── Init ───────────────────────────────────────────────────────────────────
 const urlPlan = new URLSearchParams(location.search).get('plan') || 'basic';
 selectPlan(urlPlan);
 setPeriod('monthly');
