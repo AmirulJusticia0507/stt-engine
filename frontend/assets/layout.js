@@ -39,6 +39,13 @@ const Layout = (() => {
     if (statusModel) statusModel.classList.toggle('hidden', c);
     const statusLabel = document.getElementById('statusLabel');
     if (statusLabel) statusLabel.classList.toggle('hidden', c);
+    // Sub-menu dokumen: tutup saat collapsed
+    if (c) {
+      const sub = document.getElementById('docSubMenu');
+      if (sub) sub.style.maxHeight = '0';
+      const chev = document.getElementById('docMenuChevron');
+      if (chev) chev.style.transform = '';
+    }
     localStorage.setItem('sb_collapsed', c ? '1' : '0');
   }
 
@@ -180,3 +187,41 @@ const Layout = (() => {
 
   return { init, setCollapsed, applyActiveNav };
 })();
+
+/* ── Doc sub-menu accordion (dipanggil dari sidebar.html onclick) ───────── */
+function toggleDocMenu() {
+  const sub  = document.getElementById('docSubMenu');
+  const chev = document.getElementById('docMenuChevron');
+  const sb   = document.getElementById('sidebar');
+  if (!sub) return;
+  // Jangan buka saat sidebar collapsed
+  if (sb && sb.classList.contains('w-20')) {
+    Layout.setCollapsed(false);
+    setTimeout(() => _openDocMenu(sub, chev), 260);
+    return;
+  }
+  const isOpen = sub.style.maxHeight && sub.style.maxHeight !== '0px' && sub.style.maxHeight !== '0';
+  if (isOpen) {
+    sub.style.maxHeight = '0';
+    if (chev) chev.style.transform = '';
+    localStorage.setItem('docMenuOpen', '0');
+  } else {
+    _openDocMenu(sub, chev);
+  }
+}
+
+function _openDocMenu(sub, chev) {
+  if (!sub) return;
+  sub.style.maxHeight = sub.scrollHeight + 'px';
+  if (chev) chev.style.transform = 'rotate(180deg)';
+  localStorage.setItem('docMenuOpen', '1');
+}
+
+/* Restore state setelah inject */
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('docMenuOpen') === '1') {
+    const sub  = document.getElementById('docSubMenu');
+    const chev = document.getElementById('docMenuChevron');
+    _openDocMenu(sub, chev);
+  }
+});
