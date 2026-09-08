@@ -92,12 +92,12 @@
     </a>
 
     <!-- Divider -->
-    <div class="lbl pt-3 pb-1">
+    <div class="admin-only lbl pt-3 pb-1 hidden">
       <p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Dokumen</p>
     </div>
 
     <!-- Dokumen accordion -->
-    <div id="docMenuWrap">
+    <div id="docMenuWrap" class="admin-only hidden">
       <!-- Trigger -->
       <button id="docMenuTrigger" onclick="toggleDocMenu()"
         class="nav-item w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all text-left">
