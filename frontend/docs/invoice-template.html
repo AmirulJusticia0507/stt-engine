@@ -8,116 +8,254 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 10pt; }
-    body { font-family: 'Inter', sans-serif; color: #1e293b; background: #f8fafc; line-height: 1.6; padding-top: 52px; }
+    body { font-family: 'Inter', sans-serif; color: #1e293b; background: #f1f5f9; line-height: 1.6; }
 
     @media print {
       .no-print { display: none !important; }
-      body { background: #fff; padding-top: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #fff; padding-top: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       @page { size: A4; margin: 12mm 15mm; }
     }
 
-    .page { width: 210mm; margin: 0 auto; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    body { padding-top: 0; }
+
+    /* ── Admin Panel ─────────────────────────────────────────────────── */
+    .admin-panel {
+      position: sticky; top: 0; z-index: 200;
+      background: #0f172a; border-bottom: 1px solid #1e293b;
+    }
+    .admin-topbar {
+      display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .admin-topbar span { color: #94a3b8; font-size: 8.5pt; }
+    .admin-topbar .btns { display: flex; gap: 8px; margin-left: auto; }
+    .btn-print {
+      background: linear-gradient(135deg,#6366f1,#a855f7); color: #fff; border: none;
+      border-radius: 8px; padding: 7px 18px; font-size: 8.5pt; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-back {
+      background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+      border-radius: 8px; padding: 7px 14px; font-size: 8.5pt; font-weight: 500;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      text-decoration: none; display: flex; align-items: center; gap: 5px;
+    }
+    .btn-add-row {
+      background: #1e293b; color: #6366f1; border: 1px dashed #4f46e5;
+      border-radius: 8px; padding: 7px 14px; font-size: 8.5pt; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .admin-fields {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px; padding: 12px 20px;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group label {
+      font-size: 7pt; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #64748b;
+    }
+    .field-group input, .field-group select, .field-group textarea {
+      background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+      color: #f1f5f9; font-size: 8.5pt; font-family: 'Inter', sans-serif;
+      padding: 5px 9px; outline: none;
+      transition: border-color 0.15s;
+    }
+    .field-group input:focus, .field-group select:focus { border-color: #6366f1; }
+    .field-group textarea { resize: vertical; min-height: 52px; }
+    .field-group select option { background: #1e293b; }
+
+    /* ── Invoice page ────────────────────────────────────────────────── */
+    .page {
+      width: 210mm; margin: 20px auto 40px;
+      background: #fff;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+    }
+    @media print { .page { margin: 0; box-shadow: none; } }
 
     /* Header */
-    .inv-header { padding: 36px 48px 28px; background: linear-gradient(135deg, #0f172a, #1e1b4b); position: relative; overflow: hidden; }
-    .inv-header::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(99,102,241,0.12) 1px,transparent 1px); background-size:24px 24px; }
-    .inv-header-inner { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; }
+    .inv-header {
+      padding: 32px 44px 24px;
+      background: linear-gradient(135deg, #0f172a, #1e1b4b);
+      position: relative; overflow: hidden;
+    }
+    .inv-header::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(99,102,241,0.12) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .inv-header-inner {
+      position: relative; z-index: 1;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
     .inv-logo-row { display: flex; align-items: center; gap: 12px; }
-    .inv-logo { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#6366f1,#a855f7); display: flex; align-items: center; justify-content: center; }
-    .inv-logo svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2; }
-    .inv-brand { font-size: 16pt; font-weight: 800; color: transparent; background: linear-gradient(90deg,#818cf8,#c084fc,#f472b6); -webkit-background-clip: text; background-clip: text; }
-    .inv-brand-sub { font-size: 7.5pt; color: #94a3b8; }
+    .inv-logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg,#6366f1,#a855f7);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .inv-logo svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; }
+    .inv-brand { font-size: 15pt; font-weight: 800; color: transparent; background: linear-gradient(90deg,#818cf8,#c084fc,#f472b6); -webkit-background-clip: text; background-clip: text; }
+    .inv-brand-sub { font-size: 7pt; color: #94a3b8; }
     .inv-title-block { text-align: right; }
-    .inv-title { font-size: 24pt; font-weight: 900; color: #fff; letter-spacing: -1px; }
-    .inv-number { font-size: 9pt; color: #a5b4fc; margin-top: 4px; }
-
-    /* Status badge */
-    .inv-status { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .status-paid { background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.4); color: #86efac; }
+    .inv-title { font-size: 22pt; font-weight: 900; color: #fff; letter-spacing: -1px; }
+    .inv-number-display { font-size: 9pt; color: #a5b4fc; margin-top: 4px; }
+    .inv-status { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+    .status-paid    { background: rgba(34,197,94,0.2);  border: 1px solid rgba(34,197,94,0.4);  color: #86efac; }
     .status-pending { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #fcd34d; }
-    .status-draft { background: rgba(100,116,139,0.2); border: 1px solid rgba(100,116,139,0.4); color: #cbd5e1; }
+    .status-draft   { background: rgba(100,116,139,0.2);border: 1px solid rgba(100,116,139,0.4);color: #cbd5e1; }
 
     /* Body */
-    .inv-body { padding: 36px 48px; }
+    .inv-body { padding: 32px 44px; }
 
     /* Parties */
-    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
-    .party-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
-    .party-label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 8px; }
-    .party-name { font-size: 12pt; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
-    .party-detail { font-size: 8.5pt; color: #64748b; line-height: 1.6; }
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .party-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+    .party-label { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 7px; }
+    .party-name { font-size: 11pt; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+    .party-detail { font-size: 8pt; color: #64748b; line-height: 1.65; }
 
-    /* Meta */
-    .inv-meta { display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
-    .meta-item { flex: 1; padding: 12px 16px; border-right: 1px solid #e2e8f0; background: #fff; }
+    /* Meta row */
+    .inv-meta { display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 26px; }
+    .meta-item { flex: 1; padding: 11px 14px; border-right: 1px solid #e2e8f0; background: #fff; }
     .meta-item:last-child { border-right: none; }
-    .meta-label { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin-bottom: 4px; }
-    .meta-value { font-size: 9.5pt; font-weight: 700; color: #1e293b; }
+    .meta-label { font-size: 7pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin-bottom: 4px; }
+    .meta-value { font-size: 9pt; font-weight: 700; color: #1e293b; }
 
-    /* Table */
-    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-    .inv-table thead tr { background: linear-gradient(135deg, #eef2ff, #faf5ff); }
-    .inv-table th { padding: 11px 14px; text-align: left; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6366f1; border-bottom: 2px solid #c7d2fe; }
+    /* Items table */
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .inv-table thead tr { background: linear-gradient(135deg,#eef2ff,#faf5ff); }
+    .inv-table th { padding: 10px 12px; text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6366f1; border-bottom: 2px solid #c7d2fe; }
     .inv-table th:last-child { text-align: right; }
-    .inv-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 9pt; color: #334155; vertical-align: top; }
+    .inv-table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; font-size: 8.5pt; color: #334155; vertical-align: top; }
     .inv-table td:last-child { text-align: right; font-weight: 700; }
     .inv-table tbody tr:last-child td { border-bottom: none; }
     .item-name { font-weight: 600; color: #1e293b; }
-    .item-desc { font-size: 8pt; color: #94a3b8; margin-top: 2px; }
+    .item-desc { font-size: 7.5pt; color: #94a3b8; margin-top: 2px; }
+    /* Editable cells in admin mode */
+    .inv-table td[contenteditable="true"] {
+      outline: none; cursor: text;
+      background: rgba(99,102,241,0.04);
+      border-bottom: 1px dashed #c7d2fe !important;
+    }
+    .inv-table td[contenteditable="true"]:focus { background: rgba(99,102,241,0.08); }
 
     /* Totals */
-    .totals { display: flex; justify-content: flex-end; }
+    .totals { display: flex; justify-content: flex-end; margin-bottom: 4px; }
     .totals-box { width: 260px; }
-    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 9pt; color: #64748b; }
-    .totals-row.divider { border-top: 1px solid #e2e8f0; margin-top: 6px; padding-top: 12px; }
-    .totals-row.total { font-size: 13pt; font-weight: 900; color: #1e293b; }
+    .totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 9pt; color: #64748b; }
+    .totals-row.divider { border-top: 1px solid #e2e8f0; margin-top: 6px; padding-top: 11px; }
+    .totals-row.total-row { font-size: 13pt; font-weight: 900; color: #1e293b; }
     .total-amount { color: transparent; background: linear-gradient(135deg,#6366f1,#a855f7); -webkit-background-clip: text; background-clip: text; }
 
     /* Notes */
-    .inv-notes { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0 10px 10px 0; padding: 14px 16px; margin-top: 24px; }
-    .inv-notes p { font-size: 8.5pt; color: #64748b; line-height: 1.65; }
+    .inv-notes { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0 10px 10px 0; padding: 12px 16px; margin-top: 20px; }
+    .inv-notes p { font-size: 8pt; color: #64748b; line-height: 1.65; }
     .inv-notes strong { color: #475569; }
 
-    /* Payment info */
-    .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-    .payment-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; }
-    .payment-label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin-bottom: 4px; }
-    .payment-value { font-size: 9pt; font-weight: 600; color: #1e293b; }
+    /* Payment */
+    .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .payment-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 11px 13px; }
+    .payment-label { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin-bottom: 3px; }
+    .payment-value { font-size: 8.5pt; font-weight: 600; color: #1e293b; }
 
     /* Footer */
-    .inv-footer { background: #0f172a; padding: 14px 48px; display: flex; justify-content: space-between; align-items: center; }
-    .inv-footer p { color: #475569; font-size: 7.5pt; }
+    .inv-footer { background: #0f172a; padding: 13px 44px; display: flex; justify-content: space-between; align-items: center; }
+    .inv-footer p { color: #475569; font-size: 7pt; }
     .inv-footer strong { color: #94a3b8; }
 
-    /* Print bar */
-    .print-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; padding: 10px 24px; }
-    .print-bar span { color: #94a3b8; font-size: 9pt; font-family: 'Inter', sans-serif; }
-    .print-bar .btns { display: flex; gap: 8px; margin-left: auto; }
-    .btn-print { background: linear-gradient(135deg,#6366f1,#a855f7); color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 9pt; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
-    .btn-back  { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: 8px 16px; font-size: 9pt; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+    /* Diskon row — hidden when 0 */
+    #discountRow { display: none; }
   </style>
 </head>
 <body>
 
-<!-- Print toolbar -->
-<div class="print-bar no-print">
-  <span>🧾 Invoice — STT Engine</span>
-  <div class="btns">
-    <a href="../billing.html" class="btn-back">← Kembali</a>
-    <button class="btn-print" onclick="window.print()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-      Print / Simpan PDF
-    </button>
+<!-- ══ ADMIN PANEL (no-print) ══════════════════════════════════════════════ -->
+<div class="admin-panel no-print">
+
+  <!-- Toolbar -->
+  <div class="admin-topbar">
+    <svg width="16" height="16" fill="none" stroke="#6366f1" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    <span>Invoice Editor — perubahan langsung terlihat di preview</span>
+    <div class="btns">
+      <a href="../billing.html" class="btn-back">← Kembali</a>
+      <button class="btn-add-row" onclick="addRow()">+ Tambah Baris</button>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Print / Simpan PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Fields -->
+  <div class="admin-fields">
+    <!-- Invoice meta -->
+    <div class="field-group">
+      <label>Nomor Invoice</label>
+      <input id="f_number" type="text" value="INV-2025-0001" oninput="sync('invNumber', this.value)" />
+    </div>
+    <div class="field-group">
+      <label>Status</label>
+      <select id="f_status" onchange="updateStatus(this.value)">
+        <option value="draft">DRAFT</option>
+        <option value="pending">MENUNGGU</option>
+        <option value="paid" selected>LUNAS</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Tanggal Invoice</label>
+      <input id="f_date" type="date" oninput="syncDate('invDate', this.value)" />
+    </div>
+    <div class="field-group">
+      <label>Jatuh Tempo</label>
+      <input id="f_due" type="date" oninput="syncDate('invDue', this.value)" />
+    </div>
+    <div class="field-group">
+      <label>Paket</label>
+      <select id="f_plan" onchange="sync('invPlan', this.value)">
+        <option>Community</option>
+        <option>Free</option>
+        <option>Basic</option>
+        <option>Pro</option>
+        <option>Pay-as-you-go</option>
+        <option value="Enterprise" selected>Enterprise</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Periode Tagihan</label>
+      <input id="f_period" type="month" oninput="syncMonth('invPeriod', this.value)" />
+    </div>
+    <!-- Client info -->
+    <div class="field-group">
+      <label>Nama Klien / Perusahaan</label>
+      <input id="f_client" type="text" placeholder="PT Contoh Indonesia" oninput="sync('clientName', this.value)" />
+    </div>
+    <div class="field-group" style="grid-column: span 2;">
+      <label>Detail Klien (baris per baris)</label>
+      <textarea id="f_detail" rows="3" placeholder="Nama Kontak&#10;Alamat&#10;Email&#10;Telepon" oninput="syncDetail(this.value)"></textarea>
+    </div>
+    <!-- Diskon -->
+    <div class="field-group">
+      <label>Diskon (Rp, 0 = tidak ada)</label>
+      <input id="f_discount" type="number" value="0" min="0" step="1000" oninput="recalc()" />
+    </div>
+    <!-- Notes -->
+    <div class="field-group" style="grid-column: span 2;">
+      <label>Catatan / Keterangan</label>
+      <textarea id="f_notes" rows="2" oninput="sync('invNotesText', this.value)">Harap transfer sesuai nominal tertera dan konfirmasi via WhatsApp dengan menyertakan bukti transfer. Invoice ini sah secara administratif sebagai bukti tagihan resmi. Untuk pertanyaan, hubungi +62 821-3440-2383.</textarea>
+    </div>
   </div>
 </div>
 
+<!-- ══ INVOICE PAGE ══════════════════════════════════════════════════════════ -->
 <div class="page">
 
   <!-- Header -->
   <div class="inv-header">
     <div class="inv-header-inner">
       <div>
-        <div class="inv-logo-row" style="margin-bottom:12px;">
+        <div class="inv-logo-row" style="margin-bottom:10px;">
           <div class="inv-logo">
             <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
           </div>
@@ -130,7 +268,7 @@
       </div>
       <div class="inv-title-block">
         <div class="inv-title">INVOICE</div>
-        <div class="inv-number" id="invNumber">INV-2025-0001</div>
+        <div class="inv-number-display" id="invNumber">INV-2025-0001</div>
       </div>
     </div>
   </div>
@@ -152,25 +290,20 @@
       </div>
       <div class="party-box">
         <div class="party-label">Kepada</div>
-        <div class="party-name" id="clientName">Nama Klien / Perusahaan</div>
-        <div class="party-detail" id="clientDetail">
-          Nama Kontak<br/>
-          Alamat<br/>
-          Email<br/>
-          Telepon
-        </div>
+        <div class="party-name" id="clientName">—</div>
+        <div class="party-detail" id="clientDetail">—</div>
       </div>
     </div>
 
-    <!-- Meta -->
+    <!-- Meta (dates controlled by admin) -->
     <div class="inv-meta">
       <div class="meta-item">
         <div class="meta-label">Tanggal Invoice</div>
-        <div class="meta-value" id="invDate">01 Juli 2025</div>
+        <div class="meta-value" id="invDate">—</div>
       </div>
       <div class="meta-item">
         <div class="meta-label">Jatuh Tempo</div>
-        <div class="meta-value" id="invDue">15 Juli 2025</div>
+        <div class="meta-value" id="invDue">—</div>
       </div>
       <div class="meta-item">
         <div class="meta-label">Paket</div>
@@ -178,78 +311,78 @@
       </div>
       <div class="meta-item">
         <div class="meta-label">Periode</div>
-        <div class="meta-value" id="invPeriod">Juli 2025</div>
+        <div class="meta-value" id="invPeriod">—</div>
       </div>
     </div>
 
-    <!-- Items table -->
+    <!-- Items table (cells editable in browser) -->
     <table class="inv-table">
       <thead>
         <tr>
-          <th style="width:40px;">#</th>
+          <th style="width:36px;">#</th>
           <th>Deskripsi Layanan</th>
-          <th style="width:80px; text-align:right;">Qty</th>
-          <th style="width:110px; text-align:right;">Harga Satuan</th>
-          <th style="width:120px;">Total</th>
+          <th style="width:60px; text-align:right;">Qty</th>
+          <th style="width:110px; text-align:right;">Harga Satuan (Rp)</th>
+          <th style="width:120px; text-align:right;">Subtotal (Rp)</th>
         </tr>
       </thead>
       <tbody id="invItems">
         <tr>
           <td>1</td>
           <td>
-            <div class="item-name">STT Engine — Paket Enterprise</div>
-            <div class="item-desc">Akses unlimited · SLA 99.9% · Support 24/7 · Dedicated API</div>
+            <div class="item-name" contenteditable="true" oninput="recalc()">STT Engine — Paket Enterprise</div>
+            <div class="item-desc" contenteditable="true">Akses unlimited · SLA 99.9% · Support 24/7 · Dedicated API</div>
           </td>
-          <td style="text-align:right;">1</td>
-          <td style="text-align:right;">Rp 5.000.000</td>
-          <td>Rp 5.000.000</td>
+          <td style="text-align:right;" contenteditable="true" data-col="qty" oninput="recalc()">1</td>
+          <td style="text-align:right;" contenteditable="true" data-col="price" oninput="recalc()">5000000</td>
+          <td style="text-align:right;" class="row-total">5.000.000</td>
         </tr>
         <tr>
           <td>2</td>
           <td>
-            <div class="item-name">Setup & Onboarding Fee</div>
-            <div class="item-desc">Konfigurasi server, migrasi data, pelatihan tim (sekali bayar)</div>
+            <div class="item-name" contenteditable="true" oninput="recalc()">Setup &amp; Onboarding Fee</div>
+            <div class="item-desc" contenteditable="true">Konfigurasi server, migrasi data, pelatihan tim (sekali bayar)</div>
           </td>
-          <td style="text-align:right;">1</td>
-          <td style="text-align:right;">Rp 500.000</td>
-          <td>Rp 500.000</td>
+          <td style="text-align:right;" contenteditable="true" data-col="qty" oninput="recalc()">1</td>
+          <td style="text-align:right;" contenteditable="true" data-col="price" oninput="recalc()">500000</td>
+          <td style="text-align:right;" class="row-total">500.000</td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Totals -->
+    <!-- Totals (auto-calculated) -->
     <div class="totals">
       <div class="totals-box">
         <div class="totals-row">
           <span>Subtotal</span>
-          <span id="subtotal">Rp 5.500.000</span>
+          <span id="dispSubtotal">5.500.000</span>
         </div>
-        <div class="totals-row">
+        <div class="totals-row" id="discountRow">
           <span>Diskon</span>
-          <span id="discount">—</span>
+          <span id="dispDiscount">—</span>
         </div>
         <div class="totals-row">
           <span>PPN (11%)</span>
-          <span id="tax">Rp 605.000</span>
+          <span id="dispTax">605.000</span>
         </div>
-        <div class="totals-row divider total">
+        <div class="totals-row divider total-row">
           <span>Total</span>
-          <span class="total-amount" id="total">Rp 6.105.000</span>
+          <span class="total-amount" id="dispTotal">6.105.000</span>
         </div>
       </div>
     </div>
 
     <!-- Payment info -->
-    <div style="margin-top:28px;">
-      <p style="font-size:9pt; font-weight:700; color:#1e293b; margin-bottom:12px;">Informasi Pembayaran</p>
+    <div style="margin-top:24px;">
+      <p style="font-size:9pt; font-weight:700; color:#1e293b; margin-bottom:10px;">Informasi Pembayaran</p>
       <div class="payment-grid">
         <div class="payment-item">
           <div class="payment-label">Bank</div>
-          <div class="payment-value">BCA</div>
+          <div class="payment-value">BRI</div>
         </div>
         <div class="payment-item">
           <div class="payment-label">Nomor Rekening</div>
-          <div class="payment-value">1234 5678 90</div>
+          <div class="payment-value">0245 0107 1112 509</div>
         </div>
         <div class="payment-item">
           <div class="payment-label">Atas Nama</div>
@@ -264,7 +397,7 @@
 
     <!-- Notes -->
     <div class="inv-notes">
-      <p><strong>Catatan:</strong> Harap transfer sesuai nominal tertera dan konfirmasi via WhatsApp dengan menyertakan bukti transfer. Invoice ini sah secara administratif sebagai bukti tagihan resmi. Untuk pertanyaan, hubungi +62 821-3440-2383.</p>
+      <p><strong>Catatan:</strong> <span id="invNotesText">Harap transfer sesuai nominal tertera dan konfirmasi via WhatsApp dengan menyertakan bukti transfer. Invoice ini sah secara administratif sebagai bukti tagihan resmi. Untuk pertanyaan, hubungi +62 821-3440-2383.</span></p>
     </div>
 
   </div>
@@ -272,30 +405,141 @@
   <!-- Footer -->
   <div class="inv-footer">
     <p>© 2025 <strong>STT Engine</strong> · Amirul Putra Justicia · APJ Fullstack</p>
-    <p>Dibuat: <strong id="createdAt"></strong></p>
+    <p>Dicetak: <strong id="createdAt"></strong></p>
   </div>
 
 </div>
 
+<!-- ══ SCRIPTS ══════════════════════════════════════════════════════════════ -->
 <script>
-  // Auto-fill tanggal
-  const now = new Date();
-  const locale = 'id-ID';
-  const opts = { day: 'numeric', month: 'long', year: 'numeric' };
-  document.getElementById('invDate').textContent = now.toLocaleDateString(locale, opts);
-  document.getElementById('createdAt').textContent = now.toLocaleDateString(locale, opts);
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  const fmt = n => Number(n).toLocaleString('id-ID');
 
-  // Baca URL params untuk pre-fill
-  const p = new URLSearchParams(location.search);
-  if (p.get('number')) document.getElementById('invNumber').textContent = p.get('number');
-  if (p.get('client')) document.getElementById('clientName').textContent = p.get('client');
-  if (p.get('plan'))   document.getElementById('invPlan').textContent = p.get('plan');
-  if (p.get('status')) {
-    const st = document.getElementById('invStatus');
-    const map = { paid: ['LUNAS','status-paid'], pending: ['MENUNGGU','status-pending'], draft: ['DRAFT','status-draft'] };
-    const v = map[p.get('status')];
-    if (v) { st.textContent = v[0]; st.className = 'inv-status ' + v[1]; }
+  function sync(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
   }
+
+  function syncDate(id, val) {
+    if (!val) { sync(id, '—'); return; }
+    const [y, m, d] = val.split('-');
+    const date = new Date(y, m - 1, d);
+    const str = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    sync(id, str);
+  }
+
+  function syncMonth(id, val) {
+    if (!val) { sync(id, '—'); return; }
+    const [y, m] = val.split('-');
+    const date = new Date(y, m - 1, 1);
+    const str = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    sync(id, str);
+  }
+
+  function syncDetail(val) {
+    const el = document.getElementById('clientDetail');
+    if (!el) return;
+    if (!val.trim()) { el.textContent = '—'; return; }
+    el.innerHTML = val.split('\n').map(l => l.trim()).filter(Boolean).join('<br/>');
+  }
+
+  const STATUS_MAP = {
+    paid:    ['LUNAS',    'status-paid'],
+    pending: ['MENUNGGU', 'status-pending'],
+    draft:   ['DRAFT',    'status-draft'],
+  };
+  function updateStatus(val) {
+    const el = document.getElementById('invStatus');
+    if (!el) return;
+    const [label, cls] = STATUS_MAP[val] || STATUS_MAP.draft;
+    el.textContent = label;
+    el.className = 'inv-status ' + cls;
+  }
+
+  /* ── Recalculate totals ──────────────────────────────────────────────── */
+  function recalc() {
+    const rows = document.querySelectorAll('#invItems tr');
+    let subtotal = 0;
+    rows.forEach((row, i) => {
+      const qtyEl   = row.querySelector('[data-col="qty"]');
+      const priceEl = row.querySelector('[data-col="price"]');
+      const totalEl = row.querySelector('.row-total');
+      const numEl   = row.cells[0];
+
+      if (numEl) numEl.textContent = i + 1;
+
+      const qty   = parseFloat((qtyEl?.textContent  || '').replace(/[^0-9.]/g,'')) || 0;
+      const price = parseFloat((priceEl?.textContent || '').replace(/[^0-9.]/g,'')) || 0;
+      const rowTotal = qty * price;
+      if (totalEl) totalEl.textContent = fmt(rowTotal);
+      subtotal += rowTotal;
+    });
+
+    const discount = parseFloat(document.getElementById('f_discount')?.value || 0) || 0;
+    const afterDisc = Math.max(0, subtotal - discount);
+    const tax   = Math.round(afterDisc * 0.11);
+    const total = afterDisc + tax;
+
+    document.getElementById('dispSubtotal').textContent = fmt(subtotal);
+    document.getElementById('dispTax').textContent      = fmt(tax);
+    document.getElementById('dispTotal').textContent    = fmt(total);
+
+    const discRow = document.getElementById('discountRow');
+    if (discount > 0) {
+      discRow.style.display = 'flex';
+      document.getElementById('dispDiscount').textContent = '− ' + fmt(discount);
+    } else {
+      discRow.style.display = 'none';
+    }
+  }
+
+  /* ── Add row ─────────────────────────────────────────────────────────── */
+  function addRow() {
+    const tbody = document.getElementById('invItems');
+    const idx = tbody.rows.length + 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx}</td>
+      <td>
+        <div class="item-name" contenteditable="true" oninput="recalc()">Item Layanan</div>
+        <div class="item-desc" contenteditable="true">Deskripsi singkat</div>
+      </td>
+      <td style="text-align:right;" contenteditable="true" data-col="qty" oninput="recalc()">1</td>
+      <td style="text-align:right;" contenteditable="true" data-col="price" oninput="recalc()">0</td>
+      <td style="text-align:right;" class="row-total">0</td>`;
+    tbody.appendChild(tr);
+    recalc();
+    // Focus deskripsi baru
+    tr.querySelector('.item-name').focus();
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────────── */
+  const now = new Date();
+  document.getElementById('createdAt').textContent = now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+
+  // Set default tanggal di field admin = hari ini
+  const pad = n => String(n).padStart(2,'0');
+  const todayVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const dueDate  = new Date(now); dueDate.setDate(dueDate.getDate() + 14);
+  const dueVal   = `${dueDate.getFullYear()}-${pad(dueDate.getMonth()+1)}-${pad(dueDate.getDate())}`;
+  const monthVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+
+  document.getElementById('f_date').value   = todayVal;
+  document.getElementById('f_due').value    = dueVal;
+  document.getElementById('f_period').value = monthVal;
+
+  syncDate('invDate', todayVal);
+  syncDate('invDue', dueVal);
+  syncMonth('invPeriod', monthVal);
+  updateStatus('paid');
+  recalc();
+
+  // URL params pre-fill
+  const p = new URLSearchParams(location.search);
+  if (p.get('number')) { document.getElementById('f_number').value = p.get('number'); sync('invNumber', p.get('number')); }
+  if (p.get('client')) { document.getElementById('f_client').value = p.get('client'); sync('clientName', p.get('client')); }
+  if (p.get('plan'))   { document.getElementById('f_plan').value = p.get('plan'); sync('invPlan', p.get('plan')); }
+  if (p.get('status')) { document.getElementById('f_status').value = p.get('status'); updateStatus(p.get('status')); }
 </script>
 </body>
 </html>
