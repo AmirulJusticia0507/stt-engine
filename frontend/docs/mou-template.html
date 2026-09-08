@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MoU Enterprise — STT Engine</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 10pt; }
+    body { font-family: 'Inter', sans-serif; color: #1e293b; background: #f8fafc; line-height: 1.7; padding-top: 52px; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; padding-top: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page-break { page-break-before: always; }
+      @page { size: A4; margin: 20mm 18mm; }
+    }
+
+    .page { width: 210mm; margin: 0 auto; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+
+    /* Cover */
+    .mou-cover { padding: 0; min-height: 120mm; background: linear-gradient(135deg,#0f172a,#1e1b4b); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 48px; }
+    .mou-cover::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(99,102,241,0.1) 1px,transparent 1px); background-size:26px 26px; }
+    .mou-cover-glow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:200px; background:radial-gradient(ellipse,rgba(99,102,241,0.15) 0%,transparent 70%); }
+    .mou-cover-inner { position: relative; z-index: 1; }
+    .mou-cover-logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+    .mou-cover-logo-box { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg,#6366f1,#a855f7); display: flex; align-items: center; justify-content: center; }
+    .mou-cover-logo-box svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 2; }
+    .mou-cover-brand { font-size: 20pt; font-weight: 800; color: transparent; background: linear-gradient(90deg,#818cf8,#c084fc,#f472b6); -webkit-background-clip: text; background-clip: text; }
+    .mou-cover-sub { font-size: 8pt; color: #94a3b8; margin-top: 2px; }
+    .mou-title-line { width: 60px; height: 3px; background: linear-gradient(90deg,#6366f1,#a855f7); border-radius: 2px; margin: 16px auto; }
+    .mou-cover-doc { font-size: 10pt; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #a5b4fc; margin-bottom: 6px; }
+    .mou-cover-title { font-size: 20pt; font-weight: 900; color: #fff; line-height: 1.2; }
+    .mou-cover-type { font-size: 8.5pt; color: #64748b; margin-top: 12px; }
+
+    /* Body */
+    .mou-body { padding: 40px 52px; }
+
+    /* Section */
+    .mou-section { margin-bottom: 28px; }
+    .mou-section-title { font-size: 10pt; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eef2ff; padding-bottom: 6px; margin-bottom: 14px; }
+
+    /* Pasal numbering */
+    .pasal { margin-bottom: 22px; }
+    .pasal-title { font-size: 10pt; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center; }
+    .pasal-body { font-size: 9pt; color: #334155; line-height: 1.75; }
+    .pasal-body ol { padding-left: 20px; }
+    .pasal-body ol li { margin-bottom: 6px; }
+    .pasal-body ul { padding-left: 20px; list-style: disc; }
+    .pasal-body ul li { margin-bottom: 4px; }
+
+    /* Parties */
+    .parties-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .parties-table td { padding: 10px 14px; border: 1px solid #e2e8f0; font-size: 8.5pt; vertical-align: top; }
+    .parties-table td:first-child { width: 30%; background: #f8fafc; font-weight: 600; color: #64748b; }
+
+    /* Highlight box */
+    .highlight-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 14px 0; }
+    .highlight-box p { font-size: 8.5pt; color: #475569; line-height: 1.65; }
+
+    /* SLA table */
+    .sla-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+    .sla-table th { background: linear-gradient(135deg,#eef2ff,#faf5ff); padding: 9px 12px; text-align: left; font-weight: 700; color: #6366f1; border-bottom: 2px solid #c7d2fe; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sla-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .sla-table tr:last-child td { border-bottom: none; }
+
+    /* Signature */
+    .sig-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 36px; }
+    .sig-box { text-align: center; }
+    .sig-title { font-size: 8.5pt; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .sig-party { font-size: 9pt; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+    .sig-role { font-size: 8pt; color: #94a3b8; margin-bottom: 48px; }
+    .sig-line { border-top: 1.5px solid #1e293b; margin: 0 24px; }
+    .sig-name { font-size: 9pt; font-weight: 700; color: #1e293b; margin-top: 6px; }
+    .sig-designation { font-size: 7.5pt; color: #64748b; }
+
+    /* Stamp area */
+    .stamp-area { width: 80px; height: 80px; border: 2px dashed #cbd5e1; border-radius: 50%; margin: 8px auto 24px; display: flex; align-items: center; justify-content: center; }
+    .stamp-area span { font-size: 7pt; color: #cbd5e1; text-align: center; line-height: 1.3; }
+
+    /* Doc footer */
+    .doc-footer { background: #0f172a; padding: 14px 52px; display: flex; justify-content: space-between; align-items: center; }
+    .doc-footer p { color: #475569; font-size: 7.5pt; }
+    .doc-footer strong { color: #94a3b8; }
+
+    /* Print bar */
+    .print-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; padding: 10px 24px; }
+    .print-bar span { color: #94a3b8; font-size: 9pt; font-family: 'Inter', sans-serif; }
+    .print-bar .btns { display: flex; gap: 8px; margin-left: auto; }
+    .btn-print { background: linear-gradient(135deg,#6366f1,#a855f7); color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 9pt; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .btn-back  { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: 8px 16px; font-size: 9pt; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+  </style>
+</head>
+<body>
+
+<!-- Print toolbar -->
+<div class="print-bar no-print">
+  <span>📋 MoU Enterprise — STT Engine</span>
+  <div class="btns">
+    <a href="../pricing.html" class="btn-back">← Kembali</a>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+      Print / Simpan PDF
+    </button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Cover -->
+  <div class="mou-cover">
+    <div class="mou-cover-glow"></div>
+    <div class="mou-cover-inner">
+      <div class="mou-cover-logo">
+        <div class="mou-cover-logo-box">
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
+        </div>
+        <div>
+          <div class="mou-cover-brand">STT Engine</div>
+          <div class="mou-cover-sub">AI Speech-to-Text Platform · APJ Fullstack</div>
+        </div>
+      </div>
+      <div class="mou-title-line"></div>
+      <div class="mou-cover-doc">Memorandum of Understanding</div>
+      <div class="mou-cover-title">Perjanjian Kerjasama<br/>Paket Enterprise</div>
+      <div class="mou-cover-type" style="margin-top:14px; color:#94a3b8;">Nomor: MOU-STT-<span id="mouNumber">2025-ENT-001</span></div>
+      <div class="mou-cover-type">Tanggal: <span id="mouDate"></span></div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="mou-body">
+
+    <!-- Preamble -->
+    <div class="mou-section">
+      <div class="mou-section-title">Pembukaan</div>
+      <p style="font-size:9pt; color:#475569; line-height:1.75; text-align:justify;">
+        Memorandum of Understanding (MoU) ini dibuat dan ditandatangani pada tanggal <strong id="mouDateText"></strong>, oleh dan antara para pihak yang disebutkan di bawah ini, berdasarkan itikad baik dan kesepakatan bersama untuk menjalin kerja sama dalam penggunaan layanan platform AI Speech-to-Text (STT Engine).
+      </p>
+    </div>
+
+    <!-- Parties -->
+    <div class="mou-section">
+      <div class="mou-section-title">Para Pihak</div>
+
+      <p style="font-size:9pt; font-weight:600; color:#1e293b; margin-bottom:8px;">PIHAK PERTAMA (Penyedia Layanan)</p>
+      <table class="parties-table" style="margin-bottom:16px;">
+        <tr><td>Nama</td><td><strong>Amirul Putra Justicia</strong></td></tr>
+        <tr><td>Usaha / Brand</td><td>STT Engine · APJ Fullstack · Web Systems Engineer</td></tr>
+        <tr><td>Domisili</td><td>Yogyakarta, Indonesia</td></tr>
+        <tr><td>WhatsApp</td><td>+62 821-3440-2383 / +62 853-3925-8569</td></tr>
+        <tr><td>Website</td><td>v0-amirulpjportfolio.vercel.app</td></tr>
+      </table>
+
+      <p style="font-size:9pt; font-weight:600; color:#1e293b; margin-bottom:8px;">PIHAK KEDUA (Pengguna / Klien)</p>
+      <table class="parties-table">
+        <tr><td>Nama / Perusahaan</td><td id="clientName">[Nama Klien / Perusahaan]</td></tr>
+        <tr><td>Jabatan</td><td id="clientTitle">[Jabatan Penanggung Jawab]</td></tr>
+        <tr><td>Alamat</td><td id="clientAddress">[Alamat Perusahaan]</td></tr>
+        <tr><td>Email</td><td id="clientEmail">[Email Bisnis]</td></tr>
+        <tr><td>Telepon</td><td id="clientPhone">[Nomor Telepon]</td></tr>
+      </table>
+    </div>
+
+    <!-- Pasal 1 -->
+    <div class="pasal page-break">
+      <div class="pasal-title">PASAL 1 — MAKSUD DAN TUJUAN</div>
+      <div class="pasal-body">
+        <ol>
+          <li>MoU ini dimaksudkan untuk mengatur hubungan kerja sama antara Pihak Pertama sebagai penyedia layanan platform AI Speech-to-Text (STT Engine) dengan Pihak Kedua sebagai pengguna layanan Paket Enterprise.</li>
+          <li>Tujuan kerja sama ini adalah memberikan akses eksklusif kepada Pihak Kedua terhadap layanan transkripsi audio-ke-teks berbasis AI dengan jaminan performa, keamanan data, dan dukungan teknis sesuai SLA yang disepakati.</li>
+          <li>Ruang lingkup kerja sama meliputi penyediaan layanan, integrasi sistem, pemeliharaan, dan dukungan teknis selama masa kontrak berlaku.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Pasal 2 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 2 — RUANG LINGKUP LAYANAN</div>
+      <div class="pasal-body">
+        <p style="margin-bottom:8px;">Dalam rangka MoU ini, Pihak Pertama menyediakan layanan sebagai berikut:</p>
+        <ol>
+          <li>Akses platform STT Engine Paket Enterprise tanpa batas volume transkripsi.</li>
+          <li>REST API dan WebSocket endpoint untuk integrasi sistem Pihak Kedua.</li>
+          <li>Pilihan model Whisper mulai dari <em>tiny</em> hingga <em>large-v3-turbo</em> sesuai kebutuhan akurasi.</li>
+          <li>Batch processing hingga volume yang disepakati dengan antrean prioritas.</li>
+          <li>Export hasil transkripsi dalam format TXT, SRT, dan VTT.</li>
+          <li>Dashboard administrasi dengan log audit dan manajemen pengguna.</li>
+          <li>Opsi <em>on-premise</em> atau <em>private cloud deployment</em> sesuai kesepakatan.</li>
+          <li>Dukungan teknis dan pemeliharaan selama masa kontrak.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Pasal 3 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 3 — SERVICE LEVEL AGREEMENT (SLA)</div>
+      <div class="pasal-body">
+        <table class="sla-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Komitmen</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Uptime</strong></td>
+              <td>≥ 99.9% / bulan</td>
+              <td>Tidak termasuk maintenance terjadwal</td>
+            </tr>
+            <tr>
+              <td><strong>Response Time API</strong></td>
+              <td>&lt; 2 detik</td>
+              <td>Untuk file audio ≤ 5 menit</td>
+            </tr>
+            <tr>
+              <td><strong>Respons Insiden Kritis</strong></td>
+              <td>&lt; 2 jam</td>
+              <td>Layanan tidak dapat diakses sepenuhnya</td>
+            </tr>
+            <tr>
+              <td><strong>Respons Insiden Mayor</strong></td>
+              <td>&lt; 8 jam kerja</td>
+              <td>Degradasi performa signifikan</td>
+            </tr>
+            <tr>
+              <td><strong>Support Channel</strong></td>
+              <td>WhatsApp / Email</td>
+              <td>24/7 untuk insiden kritis</td>
+            </tr>
+            <tr>
+              <td><strong>Backup Data</strong></td>
+              <td>Harian (7 hari retensi)</td>
+              <td>Untuk deployment cloud</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="highlight-box" style="margin-top:12px;">
+          <p>Jika Pihak Pertama gagal memenuhi komitmen uptime ≥ 99.9% dalam satu bulan kalender, Pihak Kedua berhak mendapatkan kredit layanan senilai proporsi downtime terhadap biaya bulanan.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pasal 4 -->
+    <div class="pasal page-break">
+      <div class="pasal-title">PASAL 4 — HAK DAN KEWAJIBAN PARA PIHAK</div>
+      <div class="pasal-body">
+        <p style="font-weight:600; margin-bottom:6px;">Kewajiban Pihak Pertama:</p>
+        <ul style="margin-bottom:14px;">
+          <li>Menyediakan layanan sesuai spesifikasi dan SLA yang disepakati.</li>
+          <li>Menjaga kerahasiaan data audio dan hasil transkripsi Pihak Kedua.</li>
+          <li>Memberikan notifikasi minimal 48 jam sebelum maintenance terjadwal.</li>
+          <li>Memberikan dukungan teknis selama masa kontrak berlaku.</li>
+          <li>Tidak menjual atau mendistribusikan data Pihak Kedua kepada pihak ketiga.</li>
+        </ul>
+        <p style="font-weight:600; margin-bottom:6px;">Kewajiban Pihak Kedua:</p>
+        <ul>
+          <li>Melakukan pembayaran sesuai kesepakatan harga dan jadwal yang ditentukan.</li>
+          <li>Tidak menggunakan layanan untuk aktivitas melanggar hukum atau merugikan pihak lain.</li>
+          <li>Menjaga kerahasiaan kredensial akses (API key, token) dari pihak yang tidak berwenang.</li>
+          <li>Memberikan notifikasi jika hendak mengakhiri kontrak minimal 30 hari sebelumnya.</li>
+          <li>Menggunakan layanan sesuai batas volume yang telah disepakati.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Pasal 5 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 5 — KERAHASIAAN DATA</div>
+      <div class="pasal-body">
+        <ol>
+          <li>Seluruh data audio, transkrip, dan informasi bisnis yang diberikan Pihak Kedua bersifat rahasia dan hanya digunakan untuk keperluan penyediaan layanan.</li>
+          <li>Pihak Pertama tidak akan mengakses, menganalisis, atau menggunakan konten data Pihak Kedua kecuali diperlukan untuk keperluan teknis penyediaan layanan dan pemeliharaan sistem.</li>
+          <li>Data Pihak Kedua akan dihapus permanen dalam waktu 30 hari setelah berakhirnya kontrak atas permintaan tertulis.</li>
+          <li>Kewajiban kerahasiaan ini tetap berlaku selama 3 (tiga) tahun setelah berakhirnya MoU ini.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Pasal 6 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 6 — HARGA DAN PEMBAYARAN</div>
+      <div class="pasal-body">
+        <ol>
+          <li>Harga layanan Enterprise disepakati secara terpisah dalam Lampiran Harga (Price Annexure) yang menjadi satu kesatuan tidak terpisahkan dengan MoU ini.</li>
+          <li>Pembayaran dilakukan di muka setiap bulan/kuartal/tahun sesuai periode yang disepakati.</li>
+          <li>Keterlambatan pembayaran lebih dari 14 hari kalender dapat mengakibatkan penghentian sementara layanan.</li>
+          <li>Harga dapat ditinjau ulang setelah 12 bulan dengan pemberitahuan tertulis 30 hari sebelumnya.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Pasal 7 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 7 — MASA BERLAKU DAN PENGAKHIRAN</div>
+      <div class="pasal-body">
+        <ol>
+          <li>MoU ini berlaku selama <strong id="mouDuration">12 (dua belas) bulan</strong> terhitung sejak tanggal penandatanganan dan dapat diperpanjang atas kesepakatan kedua belah pihak.</li>
+          <li>Salah satu pihak dapat mengakhiri MoU ini dengan memberikan pemberitahuan tertulis minimal 30 hari sebelumnya tanpa dikenakan penalti, dengan syarat tidak ada kewajiban pembayaran yang belum terpenuhi.</li>
+          <li>Pelanggaran material terhadap ketentuan MoU ini memberikan hak kepada pihak yang dirugikan untuk mengakhiri MoU secara sepihak setelah memberikan notifikasi 7 hari kerja.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Pasal 8 -->
+    <div class="pasal">
+      <div class="pasal-title">PASAL 8 — PENYELESAIAN PERSELISIHAN</div>
+      <div class="pasal-body">
+        <ol>
+          <li>Setiap perselisihan yang timbul dari atau berkaitan dengan MoU ini akan diselesaikan terlebih dahulu melalui musyawarah untuk mufakat dalam jangka waktu 30 hari kalender.</li>
+          <li>Apabila tidak tercapai kesepakatan, para pihak sepakat untuk menyelesaikan perselisihan melalui mekanisme yang disepakati bersama.</li>
+          <li>MoU ini dibuat dan tunduk pada hukum yang berlaku di wilayah Republik Indonesia.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Signatures -->
+    <div style="margin-top:36px; padding-top:24px; border-top: 2px solid #e2e8f0;">
+      <p style="font-size:9pt; color:#475569; text-align:center; margin-bottom:28px;">
+        Demikian MoU ini dibuat dalam rangkap 2 (dua) eksemplar dengan kekuatan hukum yang sama, ditandatangani oleh para pihak pada tanggal tersebut di atas.
+      </p>
+
+      <div class="sig-section">
+        <div class="sig-box">
+          <div class="sig-title">Pihak Pertama</div>
+          <div class="sig-party">STT Engine · APJ Fullstack</div>
+          <div class="sig-role">Penyedia Layanan</div>
+          <div class="stamp-area"><span>Tanda Tangan<br/>&amp; Cap</span></div>
+          <div class="sig-line"></div>
+          <div class="sig-name">Amirul Putra Justicia</div>
+          <div class="sig-designation">Fullstack Web Systems Engineer</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-title">Pihak Kedua</div>
+          <div class="sig-party" id="sig2Party">[Nama Perusahaan]</div>
+          <div class="sig-role" id="sig2Role">Pengguna Layanan Enterprise</div>
+          <div class="stamp-area"><span>Tanda Tangan<br/>&amp; Cap</span></div>
+          <div class="sig-line"></div>
+          <div class="sig-name" id="sig2Name">[Nama Penanggung Jawab]</div>
+          <div class="sig-designation" id="sig2Title">[Jabatan]</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    <p>© 2025 <strong>STT Engine</strong> · MoU Enterprise · Dokumen Resmi</p>
+    <p>Nomor: <strong id="footerMouNumber"></strong></p>
+  </div>
+
+</div>
+
+<script>
+  const now = new Date();
+  const locale = 'id-ID';
+  const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+  const dateStr = now.toLocaleDateString(locale, opts);
+  document.getElementById('mouDate').textContent    = dateStr;
+  document.getElementById('mouDateText').textContent = dateStr;
+
+  // URL params
+  const p = new URLSearchParams(location.search);
+  const mouNum = p.get('number') || ('MOU-STT-' + now.getFullYear() + '-ENT-001');
+  document.getElementById('mouNumber').textContent = mouNum;
+  document.getElementById('footerMouNumber').textContent = mouNum;
+
+  if (p.get('client'))  { document.getElementById('clientName').textContent = p.get('client'); document.getElementById('sig2Party').textContent = p.get('client'); }
+  if (p.get('contact')) { document.getElementById('sig2Name').textContent = p.get('contact'); }
+  if (p.get('title'))   { document.getElementById('clientTitle').textContent = p.get('title'); document.getElementById('sig2Title').textContent = p.get('title'); document.getElementById('sig2Role').textContent = p.get('title'); }
+  if (p.get('address')) document.getElementById('clientAddress').textContent = p.get('address');
+  if (p.get('email'))   document.getElementById('clientEmail').textContent = p.get('email');
+  if (p.get('phone'))   document.getElementById('clientPhone').textContent = p.get('phone');
+  if (p.get('duration')) document.getElementById('mouDuration').textContent = p.get('duration');
+</script>
+</body>
+</html>
