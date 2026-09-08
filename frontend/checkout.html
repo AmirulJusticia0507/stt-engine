@@ -566,6 +566,91 @@ const isPayg       = currentPlan === 'payg';
 const isEnterprise = currentPlan === 'enterprise';
 const isCommunity  = currentPlan === 'community';
 
+// ── Enterprise contact → WhatsApp ──────────────────────────────────────────
+const WA_NUMBERS = [
+  { label: 'Sales 1', number: '6282134402383' },
+  { label: 'Sales 2', number: '6285339258569' },
+];
+
+function buildWaMessage(name, company, useCase, volume) {
+  return encodeURIComponent(
+`Halo, saya ingin mengetahui lebih lanjut mengenai paket *Enterprise* STT Engine.
+
+*Informasi Kontak:*
+• Nama       : ${name}
+• Perusahaan : ${company || '-'}
+• Use-case   : ${useCase || '-'}
+• Volume est : ${volume || '-'}
+
+Mohon informasi mengenai harga, SLA, dan kemungkinan demo / trial.
+
+Terima kasih.`
+  );
+}
+
+function contactEnterprise() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const theme  = { background: isDark ? '#0d1117' : '#fff', color: isDark ? '#f8fafc' : '#0f172a' };
+
+  Swal.fire({
+    title: '🏢 Hubungi Enterprise Sales',
+    html: `
+      <p class="text-xs text-slate-400 mb-4 text-left">Isi data singkat — kami akan buatkan pesan WhatsApp profesional untuk Anda kirim ke tim sales kami.</p>
+      <div class="space-y-2.5 text-left">
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Anda *</label>
+          <input id="eName" type="text" placeholder="John Doe"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-rose-500" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Perusahaan / Organisasi</label>
+          <input id="eCompany" type="text" placeholder="PT Contoh Indonesia"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-rose-500" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Use-case / Kebutuhan *</label>
+          <input id="eUseCase" type="text" placeholder="cth: transkripsi rapat, subtitle video, call center"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-rose-500" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Estimasi Volume / Bulan</label>
+          <input id="eVolume" type="text" placeholder="cth: 500 jam audio, 10.000 file"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-rose-500" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Hubungi via</label>
+          <div class="grid grid-cols-2 gap-2">
+            ${WA_NUMBERS.map((w, i) => `
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-700 hover:border-green-500/60 cursor-pointer transition has-[:checked]:border-green-500 has-[:checked]:bg-green-500/10">
+              <input type="radio" name="waNum" value="${w.number}" ${i === 0 ? 'checked' : ''}
+                class="accent-green-500 shrink-0" />
+              <div>
+                <p class="text-xs font-semibold text-white">${w.label}</p>
+                <p class="text-[10px] text-slate-400">+${w.number}</p>
+              </div>
+            </label>`).join('')}
+          </div>
+        </div>
+      </div>`,
+    confirmButtonText: '💬 Buka WhatsApp',
+    confirmButtonColor: '#16a34a',
+    showCancelButton: true, cancelButtonText: 'Batal',
+    ...theme,
+    preConfirm: () => {
+      const name    = document.getElementById('eName').value.trim();
+      const useCase = document.getElementById('eUseCase').value.trim();
+      if (!name)    { Swal.showValidationMessage('Nama wajib diisi'); return false; }
+      if (!useCase) { Swal.showValidationMessage('Use-case wajib diisi'); return false; }
+      const number  = document.querySelector('input[name="waNum"]:checked')?.value || WA_NUMBERS[0].number;
+      return { name, company: document.getElementById('eCompany').value.trim(), useCase, volume: document.getElementById('eVolume').value.trim(), number };
+    },
+  }).then(res => {
+    if (!res.isConfirmed) return;
+    const { name, company, useCase, volume, number } = res.value;
+    window.open(`https://wa.me/${number}?text=${buildWaMessage(name, company, useCase, volume)}`, '_blank');
+  });
+}
+
 function formatRp(n) { return 'Rp ' + n.toLocaleString('id-ID'); }
 
 // ── Render summary ────────────────────────────────────────────────────────
@@ -840,34 +925,9 @@ async function submitPayment() {
   const isDark = document.documentElement.classList.contains('dark');
   const swalTheme = { background: isDark ? '#0d1117' : '#fff', color: isDark ? '#f8fafc' : '#0f172a' };
 
-  // ── Enterprise: redirect ke contact form ──────────────────────────────
+  // ── Enterprise: buka WA contact form ────────────────────────────────────
   if (isEnterprise) {
-    Swal.fire({
-      title: '🏢 Enterprise Sales',
-      html: `<div class="text-left space-y-3">
-        <p class="text-sm text-slate-400">Tim kami akan menghubungi Anda dalam 1×24 jam kerja.</p>
-        <div class="space-y-2">
-          <input id="eName"  type="text"  placeholder="Nama / Perusahaan"
-            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
-          <input id="eEmail" type="email" placeholder="Email bisnis"
-            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500" />
-          <textarea id="eMsg" rows="3" placeholder="Ceritakan kebutuhan Anda (volume, use-case, dll)"
-            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500 resize-none"></textarea>
-        </div>
-      </div>`,
-      confirmButtonText: 'Kirim Permintaan',
-      confirmButtonColor: '#e11d48',
-      showCancelButton: true, cancelButtonText: 'Batal',
-      ...swalTheme,
-      preConfirm: () => {
-        const name  = document.getElementById('eName').value.trim();
-        const email = document.getElementById('eEmail').value.trim();
-        if (!name || !email) { Swal.showValidationMessage('Nama dan email wajib diisi'); return false; }
-        return { name, email };
-      },
-    }).then(res => {
-      if (res.isConfirmed) UI.ok('Permintaan Enterprise dikirim! Tim kami akan segera menghubungi ' + res.value.email);
-    });
+    contactEnterprise();
     return;
   }
 
