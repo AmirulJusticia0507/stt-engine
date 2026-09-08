@@ -48,6 +48,7 @@ from app.auth import (
     get_payment,
     get_subscription,
     get_user_credits,
+    get_user_role,
     is_admin_user,
     is_postgres as auth_db_is_postgres,
     list_audit_logs,
@@ -209,7 +210,22 @@ def reset(body: ResetIn):
 def me(user: str | None = Depends(current_user)):
     if user is None:
         raise HTTPException(status_code=401, detail="Butuh token")
-    return {"username": user}
+    sub  = get_subscription(user)
+    role = get_user_role(user) or "user"
+    credits = get_user_credits(user)
+    return {
+        "username": user,
+        "role": role,
+        "is_admin": role == "admin",
+        "plan": sub.get("plan", "free"),
+        "period": sub.get("period", "monthly"),
+        "plan_status": sub.get("status", "active"),
+        "quota_used": sub.get("quota_used", 0),
+        "quota_limit": sub.get("quota_limit"),
+        "ends_at": sub.get("ends_at"),
+        "credits": credits,
+        "plan_detail": sub.get("plan_detail", {}),
+    }
 
 
 @app.post("/api/v1/api-keys")

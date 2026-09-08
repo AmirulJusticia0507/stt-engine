@@ -20,86 +20,11 @@
 <body class="bg-slate-100 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen">
 <div class="flex min-h-screen">
 
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="relative bg-slate-900 dark:bg-[#0d1117] text-slate-200 border-r border-slate-800/50 w-64 flex flex-col z-20 shrink-0">
-    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent"></div>
-    <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800/60">
-      <a href="dashboard.html" class="flex items-center gap-2.5 min-w-0">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
-          <img src="assets/logo.png" alt="Logo" class="w-5 h-5 object-contain" onerror="this.style.display='none'" />
-        </div>
-        <span class="lbl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 text-base tracking-tight whitespace-nowrap">STT Engine</span>
-      </a>
-      <button id="collapseBtn" class="ml-2 flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition shrink-0">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
-      </button>
-    </div>
-    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
-      <p class="lbl px-2 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Menu</p>
-      <a href="dashboard.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-        <span class="lbl font-medium">Dashboard</span>
-      </a>
-      <a href="transcribe.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M9 11V7a3 3 0 016 0v4"/></svg>
-        <span class="lbl font-medium">Transcribe</span>
-      </a>
-      <a href="model.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
-        <span class="lbl font-medium">Model</span>
-      </a>
-      <a href="history.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="lbl font-medium">Riwayat</span>
-      </a>
-      <a href="audit.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        <span class="lbl font-medium">Audit Log</span>
-      </a>
-      <div class="lbl pt-3 pb-1"><p class="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Akun</p></div>
-      <a href="pricing.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-        <span class="lbl font-medium">Langganan</span>
-      </a>
-      <a href="settings.html" class="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/90 to-purple-600/80 text-white shadow-md shadow-indigo-900/40">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span class="lbl font-medium">Pengaturan</span>
-      </a>
-      <a href="users.html" class="admin-only group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/70 transition-all hidden">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <span class="lbl font-medium">Manajemen User</span>
-      </a>
-    </nav>
-    <div class="border-t border-slate-800/60 p-3">
-      <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/50 transition cursor-default">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0" id="avatarInitial">U</div>
-        <div class="lbl min-w-0">
-          <p class="text-xs text-slate-400">Login sebagai</p>
-          <p class="text-sm font-semibold text-white truncate" id="who"></p>
-        </div>
-      </div>
-    </div>
-  </aside>
+  <div id="sidebar-container"></div>
 
   <!-- MAIN -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-5 py-3.5 flex items-center gap-3">
-      <button id="mobileBtn" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <div>
-        <h1 class="font-semibold text-slate-800 dark:text-white text-sm">Pengaturan</h1>
-        <p class="text-[11px] text-slate-400 hidden sm:block">Konfigurasi tampilan dan koneksi API</p>
-      </div>
-      <div class="flex-1"></div>
-      <button onclick="Theme.toggle()" class="theme-toggle-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium transition">
-        <span class="theme-icon">🌙</span><span class="theme-text hidden sm:inline">Gelap</span>
-      </button>
-      <button onclick="Auth.logout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 text-xs font-medium transition">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        <span class="hidden sm:inline">Keluar</span>
-      </button>
-    </header>
+    <div id="header-container"></div>
 
     <main class="flex-1 overflow-y-auto p-5 md:p-7 space-y-5 max-w-2xl">
 
@@ -269,37 +194,16 @@
 </div>
 
 <script src="assets/auth.js"></script>
+<script src="assets/layout.js"></script>
 <script>
 if (!Auth.requireAuth()) throw new Error('redirect');
-const username = Auth.user;
-document.getElementById('who').textContent = username;
-document.getElementById('footUser').textContent = username;
-document.getElementById('avatarInitial').textContent = (username || 'U').charAt(0).toUpperCase();
-document.getElementById('accountUser').textContent = username;
-document.getElementById('accountAvatar').textContent = (username || 'U').charAt(0).toUpperCase();
+
+Layout.init({ page: 'settings', title: 'Pengaturan', subtitle: 'Konfigurasi tampilan dan koneksi API', health: false });
+document.getElementById('footUser').textContent = Auth.user;
+document.getElementById('accountUser').textContent = Auth.user;
+document.getElementById('accountAvatar').textContent = (Auth.user || 'U').charAt(0).toUpperCase();
 document.getElementById('accountApiBase').textContent = Auth.apiBase;
 document.getElementById('apiBaseInput').value = Auth.apiBase;
-
-const sb = document.getElementById('sidebar');
-function setCollapsed(c) {
-  sb.classList.toggle('w-64', !c); sb.classList.toggle('w-20', c);
-  document.querySelectorAll('#sidebar .lbl').forEach(e => e.classList.toggle('hidden', c));
-  localStorage.setItem('sb_collapsed', c ? '1' : '0');
-}
-document.getElementById('collapseBtn').onclick = () => setCollapsed(!sb.classList.contains('w-20'));
-document.getElementById('mobileBtn').onclick = () => sb.classList.toggle('hidden');
-if (localStorage.getItem('sb_collapsed') === '1') setCollapsed(true);
-
-async function checkAdminRole() {
-  try {
-    const r = await fetch(Auth.apiBase + '/api/v1/me', { headers: Auth.headers() });
-    if (r.ok) {
-      const j = await r.json();
-      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !(j.username === 'admin' || j.role === 'admin')));
-    }
-  } catch {}
-}
-checkAdminRole();
 
 // Theme UI
 function updateThemeUI() {
