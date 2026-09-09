@@ -114,6 +114,7 @@
     </div>
   </div>
 
+  <script src="assets/page-transition.js"></script>
   <script src="assets/auth.js"></script>
   <script>
     if (Auth.token) location.replace('dashboard.html');
@@ -133,7 +134,7 @@
         const j = await r.json();
         Auth.token = j.access_token; Auth.user = username;
         Swal.close(); UI.ok('Selamat datang, ' + username);
-        setTimeout(() => location.href = 'dashboard.html', 800);
+        setTimeout(() => PageTransition.go('dashboard.html'), 800);
       } catch (e) { Swal.close(); UI.err(e.message); btn.disabled = false; }
     }
     document.getElementById('btn').onclick = doLogin;

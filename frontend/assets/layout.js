@@ -204,7 +204,18 @@ function confirmLogout() {
     background: isDark ? '#0d1117' : '#fff',
     color: isDark ? '#f8fafc' : '#0f172a',
   }).then(result => {
-    if (result.isConfirmed) Auth.logout();
+    if (result.isConfirmed) {
+      // Pakai PageTransition jika tersedia, fallback ke Auth.logout langsung
+      if (typeof PageTransition !== 'undefined') {
+        Auth.token = '';
+        Auth.user  = '';
+        localStorage.removeItem('stt_me');
+        localStorage.removeItem('stt_me_ts');
+        PageTransition.go('login.html');
+      } else {
+        Auth.logout();
+      }
+    }
   });
 }
 function toggleDocMenu() {
