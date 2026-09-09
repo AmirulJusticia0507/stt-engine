@@ -188,7 +188,25 @@ const Layout = (() => {
   return { init, setCollapsed, applyActiveNav };
 })();
 
-/* ── Doc sub-menu accordion (dipanggil dari sidebar.html onclick) ───────── */
+/* ── Logout confirmation (dipanggil dari header.html) ───────────────────── */
+function confirmLogout() {
+  const isDark = document.documentElement.classList.contains('dark');
+  Swal.fire({
+    icon: 'question',
+    title: 'Yakin ingin keluar?',
+    html: `<p class="text-sm text-slate-400">Sesi Anda akan diakhiri dan token akan dihapus.<br/>Anda perlu login kembali untuk mengakses dashboard.</p>`,
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Tidak, Tetap di Sini',
+    confirmButtonColor: '#e11d48',
+    cancelButtonColor: '#334155',
+    reverseButtons: true,
+    background: isDark ? '#0d1117' : '#fff',
+    color: isDark ? '#f8fafc' : '#0f172a',
+  }).then(result => {
+    if (result.isConfirmed) Auth.logout();
+  });
+}
 function toggleDocMenu() {
   const sub  = document.getElementById('docSubMenu');
   const chev = document.getElementById('docMenuChevron');
