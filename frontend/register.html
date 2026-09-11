@@ -124,7 +124,7 @@
         if (!r.ok) throw new Error(j.detail || 'Gagal mendaftar');
         Auth.token = j.access_token; Auth.user = username;
         Swal.close(); UI.ok('Akun berhasil dibuat!');
-        setTimeout(() => location.href = 'dashboard.html', 800);
+        setTimeout(() => PageTransition.go('dashboard.html'), 800);
       } catch (e) { Swal.close(); UI.err(e.message); btn.disabled = false; }
     }
     document.getElementById('btn').onclick = doRegister;

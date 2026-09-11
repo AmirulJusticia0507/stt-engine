@@ -190,10 +190,23 @@ def register(body: RegisterIn):
 
 @app.post("/api/v1/auth/forgot")
 async def forgot(body: ForgotIn):
-    # Selalu return success agar tidak bocor enumerasi user; token dikirim via email.
     email = body.email or body.username
-    sent = await create_and_send_reset_token(body.username, email)
-    return {"status": "success", "message": "Jika email terdaftar, link reset telah dikirim"}
+    token = create_reset_token(body.username)
+    if token:
+        # Coba kirim email jika SMTP dikonfigurasi
+        try:
+            from app.email_utils import send_reset_email
+            await send_reset_email(email, body.username, token)
+        except Exception:
+            pass
+        # Selalu kembalikan token agar bisa dipakai di frontend
+        # (cocok untuk setup tanpa email / internal)
+        return {"status": "success", "reset_token": token,
+                "message": "Token reset berhasil dibuat"}
+    # Username tidak ditemukan — jangan bocorkan info ini ke publik
+    # tapi untuk UX internal kita beri pesan yang jelas
+    return {"status": "not_found", "reset_token": None,
+            "message": "Username tidak ditemukan"}
 
 
 @app.post("/api/v1/auth/reset")

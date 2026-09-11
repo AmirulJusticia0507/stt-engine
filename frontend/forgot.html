@@ -114,7 +114,11 @@
         });
         const j = await r.json();
         Swal.close();
-        if (!j.reset_token) { UI.err('Username tidak ditemukan.'); btn.disabled = false; return; }
+        if (!j.reset_token) {
+          UI.err('Username tidak ditemukan. Periksa kembali username Anda.');
+          btn.disabled = false;
+          return;
+        }
         const res = await Swal.fire({
           icon: 'success',
           title: 'Token Berhasil Dibuat',
@@ -125,7 +129,7 @@
           background: '#0d1117',
           color: '#f8fafc',
         });
-        if (res.isConfirmed) location.href = 'reset.html?token=' + encodeURIComponent(j.reset_token);
+        if (res.isConfirmed) PageTransition.go('reset.html?token=' + encodeURIComponent(j.reset_token));
       } catch (e) { Swal.close(); UI.err(e.message); btn.disabled = false; }
     };
   </script>

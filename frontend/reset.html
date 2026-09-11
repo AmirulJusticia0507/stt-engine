@@ -157,7 +157,7 @@
         Swal.close();
         if (!r.ok) throw new Error(j.detail || 'Reset gagal');
         await UI.ok('Password ' + j.username + ' berhasil diperbarui!');
-        location.href = 'login.html';
+        PageTransition.go('login.html');
       } catch (e) { Swal.close(); UI.err(e.message); btn.disabled = false; }
     };
   </script>
