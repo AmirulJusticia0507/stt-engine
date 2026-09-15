@@ -5,13 +5,15 @@ import hashlib
 
 import pytest
 
+from conftest import captcha_login_json
+
 
 def _reg(client, username, password="pass1234"):
     return client.post("/api/v1/auth/register", json={"username": username, "password": password})
 
 
 def _token(client, username, password="pass1234"):
-    r = client.post("/api/v1/auth/login", json={"username": username, "password": password})
+    r = client.post("/api/v1/auth/login", json=captcha_login_json(client, username, password))
     assert r.status_code == 200, r.text
     return r.json()["access_token"]
 

@@ -15,6 +15,18 @@ os.environ["ADMIN_USER"] = "admin"
 os.environ["ADMIN_PASS"] = "admin"
 
 
+def captcha_login_json(client, username: str, password: str) -> dict:
+    captcha = client.get("/api/v1/captcha/config").json()
+    answer = captcha["question"].split("=")[0]
+    answer = str(sum(int(part.strip()) for part in answer.split("+")))
+    return {
+        "username": username,
+        "password": password,
+        "captcha_token": captcha["token"],
+        "captcha_answer": answer,
+    }
+
+
 @pytest.fixture(scope="session")
 def test_db_path():
     """Provide test database path."""
@@ -46,7 +58,7 @@ def auth_token(client):
     """Get auth token for admin user."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "admin", "password": "admin"}
+        json=captcha_login_json(client, "admin", "admin")
     )
     assert response.status_code == 200
     token = response.json()["access_token"]

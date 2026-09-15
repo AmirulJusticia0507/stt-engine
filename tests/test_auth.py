@@ -2,6 +2,7 @@
 import os
 
 from app.auth import ensure_admin, verify_user
+from conftest import captcha_login_json
 
 
 class TestAuth:
@@ -11,7 +12,7 @@ class TestAuth:
         """Test successful login with admin credentials."""
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "admin", "password": "admin"}
+            json=captcha_login_json(client, "admin", "admin")
         )
         assert response.status_code == 200
         data = response.json()
@@ -22,7 +23,7 @@ class TestAuth:
         """Test login with invalid credentials."""
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "admin", "password": "wrong"}
+            json=captcha_login_json(client, "admin", "wrong")
         )
         assert response.status_code == 401
 
