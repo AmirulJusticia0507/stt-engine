@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import wave
 import json
 import secrets
@@ -25,6 +26,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy import select
+import httpx
 
 from app.auth import (
     APIKey,
@@ -118,6 +120,7 @@ def admin_user(user: str | None = Depends(current_user)) -> str:
 class LoginIn(BaseModel):
     username: str
     password: str
+    captcha_token: str | None = None
 
 
 class ForgotIn(BaseModel):
@@ -167,8 +170,42 @@ def db_health_check():
     return JSONResponse(status_code=200 if status["ok"] else 503, content=status)
 
 
+def captcha_site_key() -> str:
+    return os.getenv("SITE_KEY", "").strip()
+
+
+def captcha_secret_key() -> str:
+    return os.getenv("SECRET_KEY", "").strip()
+
+
+@app.get("/api/v1/captcha/config")
+def captcha_config():
+    site_key = captcha_site_key()
+    return {"enabled": bool(site_key and captcha_secret_key()), "site_key": site_key}
+
+
+async def verify_captcha_token(token: str | None, remote_ip: str | None = None) -> bool:
+    secret = captcha_secret_key()
+    if not secret:
+        return True
+    if not token:
+        return False
+    data = {"secret": secret, "response": token}
+    if remote_ip:
+        data["remoteip"] = remote_ip
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", data=data)
+            return bool(r.json().get("success"))
+    except Exception:
+        logger.exception("captcha verification failed")
+        return False
+
+
 @app.post("/api/v1/auth/login")
-def login(body: LoginIn):
+async def login(body: LoginIn, request: Request):
+    if not await verify_captcha_token(body.captcha_token, request.client.host if request.client else None):
+        raise HTTPException(status_code=400, detail="Captcha wajib diverifikasi")
     if not verify_user(body.username, body.password):
         raise HTTPException(status_code=401, detail="Kredensial salah")
     return {"access_token": make_token(body.username), "token_type": "bearer"}
