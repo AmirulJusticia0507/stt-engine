@@ -45,6 +45,8 @@ def database_url() -> str:
         # normalisasi ke postgresql:// agar create_engine tidak meledak 500.
         if url.startswith("postgres://"):
             url = "postgresql://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            url = "postgresql+psycopg://" + url[len("postgresql://"):]
         return url
     legacy = os.getenv("STT_DB", "").strip()
     if legacy and not legacy.startswith("sqlite"):
