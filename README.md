@@ -77,7 +77,22 @@ DATABASE_URL=postgresql+psycopg://stt:ganti-ini@localhost:5432/stt
 
 Lihat `.env.example`: `DATABASE_URL`, `JWT_SECRET` (wajib diganti di produksi!),
 `JWT_EXP_HOURS`, `ADMIN_USER`, `ADMIN_PASS` (seed admin saat tabel kosong),
-`STT_MODEL` (`tiny` di CPU kentang, `large-v3-turbo` di GPU).
+`STT_MODEL` (`tiny` di CPU, `large-v3-turbo` di GPU).
+
+### 2.4 Provider OpenAI-compatible (Bazaarlink)
+
+Mode lokal tetap menjadi default. Untuk memakai endpoint Bazaarlink, isi environment
+berikut dan pastikan paket `openai` terinstall:
+
+```env
+STT_PROVIDER=openai
+STT_MODEL=whisper-1
+OPENAI_BASE_URL=https://api.bazaarlink.ai/v1
+OPENAI_API_KEY=sk-bl-...
+```
+
+`STT_MODEL` harus memakai nama model transkripsi yang tersedia di akun Bazaarlink.
+Jangan commit API key ke repository; gunakan `.env` lokal atau secret deployment.
 
 ---
 
@@ -142,6 +157,10 @@ $env:DATABASE_URL="postgresql+psycopg://postgres:postgres123@localhost:5432/stt"
 uvicorn app.main:app --port 8000
 # buka http://localhost:8000/ -> redirect ke login/dashboard
 ```
+
+Untuk provider Bazaarlink, set `STT_PROVIDER`, `STT_MODEL`, `OPENAI_BASE_URL`,
+dan `OPENAI_API_KEY` sebelum menjalankan `uvicorn`. Pada Docker Compose, variabel
+yang sama dibaca dari file `.env`.
 
 ---
 

@@ -1,5 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 fastapi>=0.110
+openai>=1.30
 uvicorn[standard]>=0.29
 faster-whisper>=1.0
 torch
