@@ -1,4 +1,7 @@
 """Tests for authentication endpoints."""
+import os
+
+from app.auth import ensure_admin, verify_user
 
 
 class TestAuth:
@@ -22,6 +25,21 @@ class TestAuth:
             json={"username": "admin", "password": "wrong"}
         )
         assert response.status_code == 401
+
+    def test_ensure_admin_syncs_env_password(self, client):
+        """Existing admin password follows ADMIN_PASS when configured."""
+        old = os.environ.get("ADMIN_PASS")
+        os.environ["ADMIN_PASS"] = "new-admin-pass"
+        try:
+            ensure_admin()
+            assert verify_user("admin", "new-admin-pass")
+        finally:
+            os.environ["ADMIN_PASS"] = "admin"
+            ensure_admin()
+            if old is None:
+                os.environ.pop("ADMIN_PASS", None)
+            else:
+                os.environ["ADMIN_PASS"] = old
 
     def test_me_endpoint(self, client, auth_headers):
         """Test /api/v1/me endpoint."""

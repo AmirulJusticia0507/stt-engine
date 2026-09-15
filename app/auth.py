@@ -162,14 +162,18 @@ def _hash(password: str, salt: str) -> str:
 
 def ensure_admin():
     user = os.getenv("ADMIN_USER") or "admin"
-    pwd = os.getenv("ADMIN_PASS") or "admin"
+    env_pwd = os.getenv("ADMIN_PASS")
+    pwd = env_pwd or "admin"
     with _session() as s:
         existing = s.get(User, user)
         if existing is None:
             salt = secrets.token_hex(16)
             s.add(User(username=user, salt=salt, pwdhash=_hash(pwd, salt), role="admin"))
             s.commit()
-        elif existing.role != "admin":
+        elif existing.role != "admin" or (env_pwd and not hmac.compare_digest(_hash(env_pwd, existing.salt), existing.pwdhash)):
+            if env_pwd:
+                existing.salt = secrets.token_hex(16)
+                existing.pwdhash = _hash(env_pwd, existing.salt)
             existing.role = "admin"
             s.commit()
 
