@@ -40,6 +40,7 @@ from app.auth import (
     create_payment,
     create_reset_token,
     create_user,
+    db_status,
     deduct_credits,
     delete_user,
     ensure_admin,
@@ -158,6 +159,12 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 @app.get("/health")
 def health_check():
     return {"status": "ok", **stt_service.status}
+
+
+@app.get("/health/db")
+def db_health_check():
+    status = db_status()
+    return JSONResponse(status_code=200 if status["ok"] else 503, content=status)
 
 
 @app.post("/api/v1/auth/login")

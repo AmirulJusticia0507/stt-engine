@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import jwt
-from sqlalchemy import DateTime, Integer, String, Text, create_engine, desc, select
+from sqlalchemy import DateTime, Integer, String, Text, create_engine, desc, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 def _env_int(name: str, default: int) -> int:
@@ -112,6 +112,15 @@ def reset_engine():  # dipakai saat DATABASE_URL berubah (mis. tes)
 
 def _session() -> Session:
     return sessionmaker(bind=get_engine(), expire_on_commit=False)()
+
+
+def db_status() -> dict:
+    try:
+        with get_engine().connect() as conn:
+            conn.execute(text("select 1"))
+        return {"ok": True, "db": "postgres" if is_postgres() else "sqlite"}
+    except Exception as e:
+        return {"ok": False, "error": type(e).__name__, "message": str(e)[:300]}
 
 
 class Base(DeclarativeBase):
