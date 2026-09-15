@@ -38,6 +38,7 @@ from app.auth import (
     consume_reset_token,
     create_and_send_reset_token,
     create_payment,
+    create_reset_token,
     create_user,
     deduct_credits,
     delete_user,
@@ -79,6 +80,9 @@ except ImportError:  # Vercel lite deploy tanpa Redis/Celery
     celery_app = None
 from app.stt_engine import stt_service
 from app.utils import normalize_to_wav_16k, save_upload_to_temp
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("stt-engine")
 
 # Job status storage (in production, use Redis)
 job_store: dict[str, dict] = {}
@@ -123,9 +127,6 @@ class ForgotIn(BaseModel):
 class ResetIn(BaseModel):
     token: str
     new_password: str
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("stt-engine")
 
 app = FastAPI(
     title="Voice-to-Text Engine API",

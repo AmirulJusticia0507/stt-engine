@@ -39,7 +39,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def database_url() -> str:
-    url = os.getenv("DATABASE_URL", "").strip().strip('"').strip("'")
+    url = os.getenv("DATABASE_URL", "").strip().strip('"').strip("'").replace("\\_", "_").replace("\\@", "@")
     if url:
         # Skema postgres:// (umum dari provider) tak dikenal SQLAlchemy;
         # normalisasi ke postgresql:// agar create_engine tidak meledak 500.
